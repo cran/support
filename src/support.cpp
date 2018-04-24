@@ -713,7 +713,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   // std::vector<double> tmpvec(dim_num);
   std::default_random_engine generator;
   int distint = 0;
-  omp_set_num_threads(num_proc);
+  // omp_set_num_threads(num_proc);
   
   //Vectorize design and points  
   std::vector<double> des(des_num*dim_num);
@@ -848,7 +848,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     
     //Parallelize computation
-    #pragma omp parallel for
+    // #pragma omp parallel for
     for (int m=0; m<des_num; m++){
       
       arma::vec xprime(dim_num);

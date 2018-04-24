@@ -4,7 +4,7 @@ sp <- function(n, p, ini=NA,
                  num_iter=200, tol_out=1e-10*sqrt(p), bd=NA){
   
   #Standard distributions
-  if (is.na(dist.samp)){
+  if (is.na(dist.samp[1])){
     dist.samp <- matrix()
     #Encoding distribution string
     dist.vec <- c("uniform","normal","exponential","gamma","lognormal","student-t","weibull","cauchy","beta")
@@ -54,7 +54,7 @@ sp <- function(n, p, ini=NA,
                "9" = {ini[,i] <- stats::qbeta(ini[,i], dist.param[[i]][1],dist.param[[i]][2])}
         )
       }
-      if (is.na(bd)){
+      if (is.na(bd[1])){
         bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
         switch(dist.ind[i],
                "1" = {bd[i,] <- c(0,1);},
@@ -91,7 +91,7 @@ sp <- function(n, p, ini=NA,
       ini <- stats::kmeans(dist.samp[sample(1:nrow(dist.samp),nn,F),],centers=n)$centers
       ini.flg <- FALSE
     }
-    if (is.na(bd)){
+    if (is.na(bd[1])){
       bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
       for (i in 1:p){
         bd[i,] <- range(dist.samp[,i])

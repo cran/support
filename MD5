@@ -1,10 +1,10 @@
-1cc9f128fcded58bacc9a64172223140 *DESCRIPTION
+121edddea417c7bf403c0c923a8daf7f *DESCRIPTION
 d905affff73a414c00900459e650713d *NAMESPACE
 1bc87b70f02bb66c3d10dfc41262d6fd *R/RcppExports.R
-361f063c899239cba0c5bd2aae8bcbbc *R/sp_fns.R
+9007b465b5541e5d2b52df9f529ac065 *R/sp_fns.R
 c1e91c1bd5550a72b997f69a6c4d4f10 *man/sp.Rd
 cee987955043e1fbbe151a7c440eb9ff *man/support-package.Rd
-1b71d5d0901ee250bfd05b705d686faf *src/Makevars
+e3d3cb360fbfdb3c6974e14eb5f09870 *src/Makevars
 5a1c83119a0a3b59af966a871fa99fe8 *src/RcppExports.cpp
 d1677020f992d3aae3808722913bfe18 *src/init.c
-b6f9116614a2fbc7013ac91b6b866524 *src/support.cpp
+7ce1190c134d677b7f6fb01ae3096476 *src/support.cpp
