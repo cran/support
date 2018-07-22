@@ -25,11 +25,35 @@ grad_qsp <- function(des, distsamp, q) {
     .Call(`_support_grad_qsp`, des, distsamp, q)
 }
 
-thincpp <- function(Rcpp_point, Rcpp_inides, num_subsamp, bound, it_max, inn_it_max, innertol, outertol, epsilon, rate, num_proc) {
-    .Call(`_support_thincpp`, Rcpp_point, Rcpp_inides, num_subsamp, bound, it_max, inn_it_max, innertol, outertol, epsilon, rate, num_proc)
+sp_cpp <- function(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc) {
+    .Call(`_support_sp_cpp`, des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc)
 }
 
-sp_cpp <- function(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc) {
-    .Call(`_support_sp_cpp`, des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc)
+sp_seq_cpp <- function(cur, nseq, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc) {
+    .Call(`_support_sp_seq_cpp`, cur, nseq, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc)
+}
+
+gamma_eval <- function(dd, theta) {
+    .Call(`_support_gamma_eval`, dd, theta)
+}
+
+omega <- function(theta_vec, gamma_vec, max_ord) {
+    .Call(`_support_omega`, theta_vec, gamma_vec, max_ord)
+}
+
+opt_hess <- function(zz, omega_vec) {
+    .Call(`_support_opt_hess`, zz, omega_vec)
+}
+
+psp_mi <- function(xx, omega_mat, samp_mat, des_mat, des_num, ii) {
+    .Call(`_support_psp_mi`, xx, omega_mat, samp_mat, des_mat, des_num, ii)
+}
+
+psp_cpp <- function(Rcpp_inides, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thinind, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc) {
+    .Call(`_support_psp_cpp`, Rcpp_inides, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thinind, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc)
+}
+
+psp_seq_cpp <- function(cur, nseq, ini, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thin, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc) {
+    .Call(`_support_psp_seq_cpp`, cur, nseq, ini, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thin, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc)
 }
 

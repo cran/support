@@ -1,10 +1,11 @@
-sp <- function(n, p, ini=NA,
-                 dist.str=rep("uniform",p), dist.param=vector("list",p),
-                 dist.samp=NA, scale.ind=T, num_subsamp=10000,
-                 num_iter=200, tol_out=1e-10*sqrt(p), bd=NA){
+sp <- function(n, p, ini=NA, std.flg=T,
+               dist.str=rep("normal",p), dist.param=vector("list",p),
+               dist.samp=NA, scale.ind=T, bd=NA,
+               num_subsamp=max(10000,50*n), max_iter=200, min_iter=50,
+               tol_out=min(1e-2/n,1e-4)*p, warm.cl=F){
   
   #Standard distributions
-  if (is.na(dist.samp[1])){
+  if (std.flg){
     dist.samp <- matrix()
     #Encoding distribution string
     dist.vec <- c("uniform","normal","exponential","gamma","lognormal","student-t","weibull","cauchy","beta")
@@ -19,13 +20,17 @@ sp <- function(n, p, ini=NA,
     #Setting bounds and distribution parameters
     ini.flg <- TRUE
     if (is.na(ini)){
-      if (p==1){
-        ini <- matrix(randtoolbox::sobol(n,p,scrambling=T),ncol=1)
-      }else{
-        ini <- randtoolbox::sobol(n,p,scrambling=T)
-      }
-      
       ini.flg <- FALSE
+      if (p==1){
+        ini <- matrix(randtoolbox::sobol(n,p,scrambling=T,seed=sample(1e6,1)),ncol=1)
+      }else{
+        ini <- randtoolbox::sobol(n,p,scrambling=T,seed=sample(1e6,1))
+      }
+    }
+    
+    if (is.na(bd)){
+      bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
+      bd.flg <- FALSE
     }
     for (i in 1:p){
       if (is.null(dist.param[[i]])){
@@ -54,8 +59,7 @@ sp <- function(n, p, ini=NA,
                "9" = {ini[,i] <- stats::qbeta(ini[,i], dist.param[[i]][1],dist.param[[i]][2])}
         )
       }
-      if (is.na(bd[1])){
-        bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
+      if (!bd.flg){
         switch(dist.ind[i],
                "1" = {bd[i,] <- c(0,1);},
                "2" = {bd[i,] <- c(-1e8,1e8);},
@@ -70,10 +74,14 @@ sp <- function(n, p, ini=NA,
       }
     }
     
+    num_subsamp <- max(num_subsamp, 25*n)
     des <- sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,FALSE,
-                  bd,num_subsamp,num_iter,tol_out,parallel::detectCores())
+                  bd,num_subsamp,max_iter,min_iter,tol_out,parallel::detectCores())
     
   }else{
+    
+    #Set subsample size
+    num_subsamp <- min(num_subsamp, nrow(dist.samp))
     
     #Standardize
     if (scale.ind==T){
@@ -85,20 +93,30 @@ sp <- function(n, p, ini=NA,
     dist.ind <- c(NA)
     dist.param <- list(NA)
     #Setting bounds and initial point set
-    ini.flg <- TRUE
     if (is.na(ini)){
-      nn <- min(nrow(dist.samp),1e6)
-      ini <- stats::kmeans(dist.samp[sample(1:nrow(dist.samp),nn,F),],centers=n)$centers
-      ini.flg <- FALSE
+      if (warm.cl){
+        nn <- min(nrow(dist.samp),1e6)
+        ini <- stats::kmeans(dist.samp[sample(1:nrow(dist.samp),nn,F),],centers=n)$centers
+      }else{
+        ini <- jitter(dist.samp[sample(1:nrow(dist.samp),n,F),])
+      }
+    }else{
+      ini <- sweep(sweep(ini,2,mmpts,"-"),2,sdpts,"/")
     }
-    if (is.na(bd[1])){
+    if (p==1){
+      ini <- matrix(ini,ncol=1)
+    }
+    
+    if (is.na(bd)){
       bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
       for (i in 1:p){
         bd[i,] <- range(dist.samp[,i])
       }
     }
     
-    des <- thincpp(dist.samp,ini,num_subsamp,bd,num_iter,1e4,1e-2*sqrt(ncol(dist.samp)),tol_out,1e-4,0,1)
+    num_subsamp <- max(num_subsamp, 25*n)
+    des <- sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,TRUE,
+                  bd,num_subsamp,max_iter,min_iter,tol_out,parallel::detectCores())
     
     #Scale back
     if (scale.ind==T){

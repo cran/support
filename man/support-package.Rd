@@ -14,8 +14,7 @@ Version: \tab 1.0\cr
 Date: \tab 2017-08-19\cr
 License: \tab GPL (>= 2)\cr
 }
-The 'support' package provides the function \code{sp()} for generating the support points proposed in Mak and Joseph (2017)
-    <arXiv:1609.01811>. Support points are representative points of a possibly non-uniform distribution,     and can be used as optimal sampling or integration points for a distribution of choice. The provided function \code{sp()}     can be used to generate support points for standard distributions or for reducing big data (e.g., from Markov-chain Monte     Carlo methods). A detailed description of the algorithm is found in Mak and Joseph (2017).}
+The 'support' package provides the function \code{sp()} for generating the support points proposed in Mak and Joseph (2017) <arXiv:1609.01811>. Support points are representative points of a possibly non-uniform distribution, and can be used as optimal sampling or integration points for a distribution of choice. The provided function \code{sp()} can be used to generate support points for standard distributions or for reducing big data (e.g., from Markov-chain Monte Carlo methods). This work was supported by USARO grant W911NF-14-1-0024 and NSF DMS grant 1712642.}
 \author{
 Simon Mak
 

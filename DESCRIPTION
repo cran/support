@@ -1,14 +1,14 @@
 Package: support
 Type: Package
 Title: Support Points
-Version: 0.1.1
+Version: 0.1.2
 Author: Simon Mak
 Maintainer: Simon Mak <smak6@gatech.edu>
 Description: Provides the function sp() for generating the support points proposed in Mak and Joseph (2017)
     <arXiv:1609.01811>. Support points are representative points of a possibly non-uniform 
     distribution, and can be used as optimal sampling or integration points for a distribution of choice. The provided
     function sp() can be used to generate support points for standard distributions or for reducing big data
-    (e.g., from Markov-chain Monte Carlo methods). A detailed description of the algorithm is found in Mak and Joseph (2017).
+    (e.g., from Markov-chain Monte Carlo methods). This work was supported by USARO grant W911NF-14-1-0024 and NSF DMS grant 1712642.
 License: GPL (>= 2)
 LazyData: TRUE
 Imports: Rcpp (>= 0.12.4), randtoolbox, matrixStats, doParallel,
@@ -16,8 +16,6 @@ Imports: Rcpp (>= 0.12.4), randtoolbox, matrixStats, doParallel,
 LinkingTo: Rcpp, RcppArmadillo, BH
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-Packaged: 2018-04-24 05:40:31 UTC; Simon
-X-CRAN-Comment: Archived on 2018-01-25 as requirement of OpenMP was not
-        corrected despite reminders.
+Packaged: 2018-07-22 20:23:54 UTC; smak6
 Repository: CRAN
-Date/Publication: 2018-04-24 15:56:39 UTC
+Date/Publication: 2018-07-22 20:50:02 UTC

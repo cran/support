@@ -85,30 +85,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// thincpp
-NumericMatrix thincpp(NumericMatrix& Rcpp_point, arma::mat& Rcpp_inides, int num_subsamp, NumericMatrix& bound, int it_max, int inn_it_max, double innertol, double outertol, double epsilon, double rate, int num_proc);
-RcppExport SEXP _support_thincpp(SEXP Rcpp_pointSEXP, SEXP Rcpp_inidesSEXP, SEXP num_subsampSEXP, SEXP boundSEXP, SEXP it_maxSEXP, SEXP inn_it_maxSEXP, SEXP innertolSEXP, SEXP outertolSEXP, SEXP epsilonSEXP, SEXP rateSEXP, SEXP num_procSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type Rcpp_point(Rcpp_pointSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type Rcpp_inides(Rcpp_inidesSEXP);
-    Rcpp::traits::input_parameter< int >::type num_subsamp(num_subsampSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix& >::type bound(boundSEXP);
-    Rcpp::traits::input_parameter< int >::type it_max(it_maxSEXP);
-    Rcpp::traits::input_parameter< int >::type inn_it_max(inn_it_maxSEXP);
-    Rcpp::traits::input_parameter< double >::type innertol(innertolSEXP);
-    Rcpp::traits::input_parameter< double >::type outertol(outertolSEXP);
-    Rcpp::traits::input_parameter< double >::type epsilon(epsilonSEXP);
-    Rcpp::traits::input_parameter< double >::type rate(rateSEXP);
-    Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
-    rcpp_result_gen = Rcpp::wrap(thincpp(Rcpp_point, Rcpp_inides, num_subsamp, bound, it_max, inn_it_max, innertol, outertol, epsilon, rate, num_proc));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sp_cpp
-NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, double tol, int num_proc);
-RcppExport SEXP _support_sp_cpp(SEXP des_numSEXP, SEXP dim_numSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
+NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, int it_min, double tol, int num_proc);
+RcppExport SEXP _support_sp_cpp(SEXP des_numSEXP, SEXP dim_numSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP it_minSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -122,9 +101,139 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type bd(bdSEXP);
     Rcpp::traits::input_parameter< int >::type point_num(point_numSEXP);
     Rcpp::traits::input_parameter< int >::type it_max(it_maxSEXP);
+    Rcpp::traits::input_parameter< int >::type it_min(it_minSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
-    rcpp_result_gen = Rcpp::wrap(sp_cpp(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc));
+    rcpp_result_gen = Rcpp::wrap(sp_cpp(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sp_seq_cpp
+NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, double tol, int num_proc);
+RcppExport SEXP _support_sp_seq_cpp(SEXP curSEXP, SEXP nseqSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type cur(curSEXP);
+    Rcpp::traits::input_parameter< int >::type nseq(nseqSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type ini(iniSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type distind(distindSEXP);
+    Rcpp::traits::input_parameter< List >::type distparam(distparamSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< bool >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type bd(bdSEXP);
+    Rcpp::traits::input_parameter< int >::type point_num(point_numSEXP);
+    Rcpp::traits::input_parameter< int >::type it_max(it_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
+    rcpp_result_gen = Rcpp::wrap(sp_seq_cpp(cur, nseq, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc));
+    return rcpp_result_gen;
+END_RCPP
+}
+// gamma_eval
+double gamma_eval(arma::vec& dd, arma::vec& theta);
+RcppExport SEXP _support_gamma_eval(SEXP ddSEXP, SEXP thetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type dd(ddSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type theta(thetaSEXP);
+    rcpp_result_gen = Rcpp::wrap(gamma_eval(dd, theta));
+    return rcpp_result_gen;
+END_RCPP
+}
+// omega
+arma::vec omega(arma::vec& theta_vec, arma::vec& gamma_vec, int max_ord);
+RcppExport SEXP _support_omega(SEXP theta_vecSEXP, SEXP gamma_vecSEXP, SEXP max_ordSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type theta_vec(theta_vecSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type gamma_vec(gamma_vecSEXP);
+    Rcpp::traits::input_parameter< int >::type max_ord(max_ordSEXP);
+    rcpp_result_gen = Rcpp::wrap(omega(theta_vec, gamma_vec, max_ord));
+    return rcpp_result_gen;
+END_RCPP
+}
+// opt_hess
+arma::mat opt_hess(arma::vec zz, arma::vec omega_vec);
+RcppExport SEXP _support_opt_hess(SEXP zzSEXP, SEXP omega_vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec >::type zz(zzSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type omega_vec(omega_vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(opt_hess(zz, omega_vec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psp_mi
+arma::vec psp_mi(arma::vec& xx, arma::mat& omega_mat, arma::mat& samp_mat, std::vector<double>& des_mat, int des_num, int ii);
+RcppExport SEXP _support_psp_mi(SEXP xxSEXP, SEXP omega_matSEXP, SEXP samp_matSEXP, SEXP des_matSEXP, SEXP des_numSEXP, SEXP iiSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type omega_mat(omega_matSEXP);
+    Rcpp::traits::input_parameter< arma::mat& >::type samp_mat(samp_matSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type des_mat(des_matSEXP);
+    Rcpp::traits::input_parameter< int >::type des_num(des_numSEXP);
+    Rcpp::traits::input_parameter< int >::type ii(iiSEXP);
+    rcpp_result_gen = Rcpp::wrap(psp_mi(xx, omega_mat, samp_mat, des_mat, des_num, ii));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psp_cpp
+NumericMatrix psp_cpp(NumericMatrix& Rcpp_inides, NumericVector& distind, List distparam, NumericVector& gam_param, arma::vec& gamma_vec, int max_ord, NumericMatrix& distsamp, bool thinind, NumericMatrix& gamsamp, bool gamind, NumericMatrix& bd, int point_num, int gam_point_num, int it_max, double tol, int num_proc);
+RcppExport SEXP _support_psp_cpp(SEXP Rcpp_inidesSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP gam_paramSEXP, SEXP gamma_vecSEXP, SEXP max_ordSEXP, SEXP distsampSEXP, SEXP thinindSEXP, SEXP gamsampSEXP, SEXP gamindSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP gam_point_numSEXP, SEXP it_maxSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type Rcpp_inides(Rcpp_inidesSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type distind(distindSEXP);
+    Rcpp::traits::input_parameter< List >::type distparam(distparamSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type gam_param(gam_paramSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type gamma_vec(gamma_vecSEXP);
+    Rcpp::traits::input_parameter< int >::type max_ord(max_ordSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< bool >::type thinind(thinindSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type gamsamp(gamsampSEXP);
+    Rcpp::traits::input_parameter< bool >::type gamind(gamindSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type bd(bdSEXP);
+    Rcpp::traits::input_parameter< int >::type point_num(point_numSEXP);
+    Rcpp::traits::input_parameter< int >::type gam_point_num(gam_point_numSEXP);
+    Rcpp::traits::input_parameter< int >::type it_max(it_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
+    rcpp_result_gen = Rcpp::wrap(psp_cpp(Rcpp_inides, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thinind, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc));
+    return rcpp_result_gen;
+END_RCPP
+}
+// psp_seq_cpp
+NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini, NumericVector& distind, List distparam, NumericVector& gam_param, arma::vec& gamma_vec, int max_ord, NumericMatrix& distsamp, bool thin, NumericMatrix& gamsamp, bool gamind, NumericMatrix& bd, int point_num, int gam_point_num, int it_max, double tol, int num_proc);
+RcppExport SEXP _support_psp_seq_cpp(SEXP curSEXP, SEXP nseqSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP gam_paramSEXP, SEXP gamma_vecSEXP, SEXP max_ordSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP gamsampSEXP, SEXP gamindSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP gam_point_numSEXP, SEXP it_maxSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type cur(curSEXP);
+    Rcpp::traits::input_parameter< int >::type nseq(nseqSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type ini(iniSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type distind(distindSEXP);
+    Rcpp::traits::input_parameter< List >::type distparam(distparamSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type gam_param(gam_paramSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type gamma_vec(gamma_vecSEXP);
+    Rcpp::traits::input_parameter< int >::type max_ord(max_ordSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< bool >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type gamsamp(gamsampSEXP);
+    Rcpp::traits::input_parameter< bool >::type gamind(gamindSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type bd(bdSEXP);
+    Rcpp::traits::input_parameter< int >::type point_num(point_numSEXP);
+    Rcpp::traits::input_parameter< int >::type gam_point_num(gam_point_numSEXP);
+    Rcpp::traits::input_parameter< int >::type it_max(it_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
+    rcpp_result_gen = Rcpp::wrap(psp_seq_cpp(cur, nseq, ini, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thin, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc));
     return rcpp_result_gen;
 END_RCPP
 }

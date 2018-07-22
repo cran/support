@@ -1,5 +1,6 @@
-useDynLib(support, .registration = TRUE)
-export(sp)
+useDynLib(support, .registration=TRUE)
 import("Rcpp")
 import("MHadaptive")
-importFrom("stats", "kmeans", "qbeta", "qcauchy", "qexp", "qgamma","qlnorm", "qnorm", "qt", "qunif", "qweibull", "var")
+importFrom("stats", "kmeans", "qbeta", "qcauchy", "qexp", "qgamma",
+             "qlnorm", "qnorm", "qt", "qunif", "qweibull", "var")
+export(sp)
