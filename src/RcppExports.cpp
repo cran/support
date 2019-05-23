@@ -6,6 +6,16 @@
 
 using namespace Rcpp;
 
+// printBar
+void printBar(double prop);
+RcppExport SEXP _support_printBar(SEXP propSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type prop(propSEXP);
+    printBar(prop);
+    return R_NilValue;
+END_RCPP
+}
 // csample_num
 NumericVector csample_num(NumericVector x, int size, bool replace);
 RcppExport SEXP _support_csample_num(SEXP xSEXP, SEXP sizeSEXP, SEXP replaceSEXP) {
@@ -20,16 +30,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // energycrit
-NumericVector energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des, NumericMatrix& cn, int num_proc);
-RcppExport SEXP _support_energycrit(SEXP Rcpp_pointSEXP, SEXP Rcpp_desSEXP, SEXP cnSEXP, SEXP num_procSEXP) {
+double energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des);
+RcppExport SEXP _support_energycrit(SEXP Rcpp_pointSEXP, SEXP Rcpp_desSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericMatrix& >::type Rcpp_point(Rcpp_pointSEXP);
     Rcpp::traits::input_parameter< NumericMatrix& >::type Rcpp_des(Rcpp_desSEXP);
-    Rcpp::traits::input_parameter< NumericMatrix& >::type cn(cnSEXP);
-    Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
-    rcpp_result_gen = Rcpp::wrap(energycrit(Rcpp_point, Rcpp_des, cn, num_proc));
+    rcpp_result_gen = Rcpp::wrap(energycrit(Rcpp_point, Rcpp_des));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -86,8 +94,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sp_cpp
-NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, int it_min, double tol, int num_proc);
-RcppExport SEXP _support_sp_cpp(SEXP des_numSEXP, SEXP dim_numSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP it_minSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
+NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, int it_min, double tol, int num_proc, double n0, NumericVector& wts);
+RcppExport SEXP _support_sp_cpp(SEXP des_numSEXP, SEXP dim_numSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP it_minSEXP, SEXP tolSEXP, SEXP num_procSEXP, SEXP n0SEXP, SEXP wtsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -104,13 +112,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type it_min(it_minSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
-    rcpp_result_gen = Rcpp::wrap(sp_cpp(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc));
+    Rcpp::traits::input_parameter< double >::type n0(n0SEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type wts(wtsSEXP);
+    rcpp_result_gen = Rcpp::wrap(sp_cpp(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc, n0, wts));
     return rcpp_result_gen;
 END_RCPP
 }
 // sp_seq_cpp
-NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, double tol, int num_proc);
-RcppExport SEXP _support_sp_seq_cpp(SEXP curSEXP, SEXP nseqSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
+NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, int it_min, double tol, int num_proc);
+RcppExport SEXP _support_sp_seq_cpp(SEXP curSEXP, SEXP nseqSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP it_minSEXP, SEXP tolSEXP, SEXP num_procSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -124,9 +134,10 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< NumericMatrix& >::type bd(bdSEXP);
     Rcpp::traits::input_parameter< int >::type point_num(point_numSEXP);
     Rcpp::traits::input_parameter< int >::type it_max(it_maxSEXP);
+    Rcpp::traits::input_parameter< int >::type it_min(it_minSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
-    rcpp_result_gen = Rcpp::wrap(sp_seq_cpp(cur, nseq, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, tol, num_proc));
+    rcpp_result_gen = Rcpp::wrap(sp_seq_cpp(cur, nseq, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc));
     return rcpp_result_gen;
 END_RCPP
 }

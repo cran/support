@@ -3,4 +3,4 @@ import("Rcpp")
 import("MHadaptive")
 importFrom("stats", "kmeans", "qbeta", "qcauchy", "qexp", "qgamma",
              "qlnorm", "qnorm", "qt", "qunif", "qweibull", "var")
-export(sp)
+export(sp,sp_seq,e_dist)

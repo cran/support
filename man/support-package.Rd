@@ -4,24 +4,24 @@
 \docType{package}
 \title{Support Points}
 \description{
-The 'support' package provides functions for generating support points.
+The 'support' package provides functions for computing support points.
 }
 \details{
 \tabular{ll}{
 Package: \tab support\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2017-08-19\cr
+Version: \tab 0.1.3\cr
+Date: \tab 2019-05-07\cr
 License: \tab GPL (>= 2)\cr
 }
-The 'support' package provides the function \code{sp()} for generating the support points proposed in Mak and Joseph (2017) <arXiv:1609.01811>. Support points are representative points of a possibly non-uniform distribution, and can be used as optimal sampling or integration points for a distribution of choice. The provided function \code{sp()} can be used to generate support points for standard distributions or for reducing big data (e.g., from Markov-chain Monte Carlo methods). This work was supported by USARO grant W911NF-14-1-0024 and NSF DMS grant 1712642.}
+The 'support' package provides the functions \code{sp()} and \code{sp_seq()} for computing the support points in Mak and Joseph (2018) <DOI:10.1214/17-AOS1629>. Support points can be used as a representative sample of a desired distribution, or a representative reduction of a big dataset (e.g., an "optimal" thinning of Markov-chain Monte Carlo sample chains). This work was supported by USARO grant W911NF-14-1-0024 and NSF DMS grant 1712642.}
 \author{
 Simon Mak
 
 Maintainer: Simon Mak <smak6@gatech.edu>
 }
 \references{
-Mak, S. and Joseph, V. R. (2017). Support points. \emph{Annals of Statistics}. To appear.
+Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 46(6A):2562-2592.
 }
 \keyword{ package }
 

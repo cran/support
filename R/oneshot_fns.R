@@ -1,8 +1,36 @@
-sp <- function(n, p, ini=NA, std.flg=T,
-               dist.str=rep("normal",p), dist.param=vector("list",p),
-               dist.samp=NA, scale.ind=T, bd=NA,
-               num_subsamp=max(10000,50*n), max_iter=200, min_iter=50,
-               tol_out=min(1e-2/n,1e-4)*p, warm.cl=F){
+sp <- function(n, p, ini=NA,
+               dist.str=NA, dist.param=vector("list",p),
+               dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
+               num.subsamp=max(10000,50*n), iter.max=max(250,iter.min), iter.min=50,
+               tol.out=1e-6*sqrt(p), warm.cl=F, n0=n*p){
+  
+  #Set std.flg (standard dist'n or data reduction)
+  if (!any(is.na(dist.samp))&&any(is.na(dist.str))){
+    # data reduction
+    std.flg = F;
+  }
+  else if(any(is.na(dist.samp))&&!any(is.na(dist.str))){
+    # standard dist'n
+    std.flg = T;
+  }
+  else{
+    stop("Exactly one of 'dist.samp' or 'dist.str' should be NA.")
+  }
+  
+  #Set weights
+  if (any(is.na(wts))){
+    if (std.flg){
+      wts <- rep(1.0,num.subsamp)
+    }else{
+      wts <- rep(1.0,nrow(dist.samp))
+    }
+  }else{
+    if (std.flg){
+      stop("wts must be NA for standard distributions.")
+    }else{
+      wts <- nrow(dist.samp)*wts;
+    }
+  }
   
   #Standard distributions
   if (std.flg){
@@ -19,7 +47,7 @@ sp <- function(n, p, ini=NA, std.flg=T,
     
     #Setting bounds and distribution parameters
     ini.flg <- TRUE
-    if (is.na(ini)){
+    if (any(is.na(ini))){
       ini.flg <- FALSE
       if (p==1){
         ini <- matrix(randtoolbox::sobol(n,p,scrambling=T,seed=sample(1e6,1)),ncol=1)
@@ -28,7 +56,7 @@ sp <- function(n, p, ini=NA, std.flg=T,
       }
     }
     
-    if (is.na(bd)){
+    if (any(is.na(bd))){
       bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
       bd.flg <- FALSE
     }
@@ -74,26 +102,31 @@ sp <- function(n, p, ini=NA, std.flg=T,
       }
     }
     
-    num_subsamp <- max(num_subsamp, 25*n)
+    num.subsamp <- max(num.subsamp, 25*n)
     des <- sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,FALSE,
-                  bd,num_subsamp,max_iter,min_iter,tol_out,parallel::detectCores())
+                  bd,num.subsamp,iter.max,iter.min,tol.out,parallel::detectCores(),n0,wts)
     
   }else{
     
     #Set subsample size
-    num_subsamp <- min(num_subsamp, nrow(dist.samp))
+    num.subsamp <- min(num.subsamp, nrow(dist.samp))
     
     #Standardize
-    if (scale.ind==T){
+    if (scale.flg==T){
       sdpts <- sqrt(apply(dist.samp,2,stats::var))
       mmpts <- apply(dist.samp,2,mean)
       dist.samp <- sweep(sweep(dist.samp,2,mmpts,"-"),2,sdpts,"/")
     }
     
+    #Jitter if repeats
+    if (any(duplicated(dist.samp))){
+      dist.samp <- jitter(dist.samp)
+    }
+    
     dist.ind <- c(NA)
     dist.param <- list(NA)
     #Setting bounds and initial point set
-    if (is.na(ini)){
+    if (any(is.na(ini))){
       if (warm.cl){
         nn <- min(nrow(dist.samp),1e6)
         ini <- stats::kmeans(dist.samp[sample(1:nrow(dist.samp),nn,F),],centers=n)$centers
@@ -107,27 +140,29 @@ sp <- function(n, p, ini=NA, std.flg=T,
       ini <- matrix(ini,ncol=1)
     }
     
-    if (is.na(bd)){
+    if (any(is.na(bd))){
       bd <- matrix(NA,nrow=p,ncol=2,byrow=T)
       for (i in 1:p){
         bd[i,] <- range(dist.samp[,i])
       }
     }
     
-    num_subsamp <- max(num_subsamp, 25*n)
+    num.subsamp <- max(num.subsamp, 25*n)
     des <- sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,TRUE,
-                  bd,num_subsamp,max_iter,min_iter,tol_out,parallel::detectCores())
+                  bd,num.subsamp,iter.max,iter.min,tol.out,parallel::detectCores(),n0,wts)
     
     #Scale back
-    if (scale.ind==T){
+    if (scale.flg==T){
       ini <- sweep(sweep(ini,2,sdpts,"*"),2,mmpts,"+")
       des <- sweep(sweep(des,2,sdpts,"*"),2,mmpts,"+")
     }
+    
+    
   }
   
   #Compute support points
   # if (asymp){
-  # des <- std_largep_cpp(n,p,num_iter,num_inn_iter,tol_inn,tol_out,eps,dist.ind,dist.param,0,1)
+  # des <- std_largep_cpp(n,p,num_iter,num_inn_iter,tol_inn,tol.out,eps,dist.ind,dist.param,0,1)
   # }
   # else{
   

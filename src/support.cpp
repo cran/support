@@ -22,6 +22,36 @@ using namespace arma;
 
 double m_eps = pow(10.0,-10.0);
 
+
+//--------------------------------------------------------------
+//Progress bar
+//--------------------------------------------------------------
+void flush_console() {
+#if !defined(WIN32) && !defined(__WIN32) && !defined(__WIN32__)
+  R_FlushConsole();
+#endif
+}
+
+// [[Rcpp::export]]
+void printBar(double prop){
+  
+  int barWidth = 70;
+  
+  // std::cout.flush();
+  flush_console();
+  Rcout << "[";
+  int pos = barWidth * prop;
+  for (int i = 0; i < barWidth; ++i) {
+    if (i < pos) Rcout << "=";
+    else if (i == pos) Rcout << ">";
+    else Rcout << " ";
+  }
+  Rcout << "] " << int(prop * 100.0) << " %\r";
+  
+}
+
+
+
 //-------------------------------------------------------------------------------
 // Random number generators for different distributions
 //-------------------------------------------------------------------------------
@@ -174,30 +204,29 @@ double sgn(double val) {
 
 // Computing the energy criterion using a Monte-Carlo sample
 // [[Rcpp::export]]
-NumericVector energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des, NumericMatrix& cn, int num_proc) {
+double energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des) {
   //Rcpp_point - Approximating points in projected subspace
   //Rcpp_des   - Design in full design space
   //cn         - Combination matrix
   //num_proc   - Number of processors available
 
-  int num_combn = cn.nrow();
-  NumericVector ret(num_combn);
-  // omp_set_num_threads(num_proc);
+  // int num_combn = cn.nrow();
+  // NumericVector ret(num_combn);
+  double ret = 0.0;
 
   //Computes the energy criterion under L_pw norm
-
   int dim_num = Rcpp_point.ncol(); //dimension of projected subspace
   int point_num = Rcpp_point.nrow(); //number of approximating points
   int des_num = Rcpp_des.nrow(); //number of design points
 
   // #pragma omp parallel for
-  for (int l=0; l<num_combn; l++){
+  // for (int l=0; l<num_combn; l++){
     double runcrit = 0.0;
     for (int i=0; i<des_num; i++){
       for (int j=0; j<point_num; j++){
         double runcrittmp = 0.0;
         for (int k=0; k<dim_num; k++){
-          runcrittmp += pow(abs(Rcpp_point(j,k) - Rcpp_des(i,cn(l,k))), 2.0);
+          runcrittmp += pow(abs(Rcpp_point(j,k) - Rcpp_des(i,k)), 2.0);
         }
         runcrit += sqrt(runcrittmp);
       }
@@ -209,14 +238,15 @@ NumericVector energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des, Num
       for (int j=0; j<des_num; j++){
         double runcrittmp2 = 0.0;
         for (int k=0; k<dim_num; k++){
-          runcrittmp2 += pow(abs(Rcpp_des(i,cn(l,k)) - Rcpp_des(j,cn(l,k))), 2.0);
+          runcrittmp2 += pow(abs(Rcpp_des(i,k) - Rcpp_des(j,k)), 2.0);
         }
         runcrit2 += sqrt(runcrittmp2);
       }
     }
-    ret(l) = runcrit2 / ((double)(des_num*des_num));
-  }
+    runcrit2 = runcrit2 / ((double)(des_num*des_num));
+  // }
 
+  ret = runcrit - runcrit2;
   return(ret);
 
 }
@@ -687,7 +717,7 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
                              NumericVector& distind, List distparam, 
                              NumericMatrix& distsamp, bool thin, NumericMatrix& bd,
-                             int point_num, int it_max, int it_min, double tol, int num_proc){
+                             int point_num, int it_max, int it_min, double tol, int num_proc, double n0, NumericVector& wts){
   
   // Description of Inputs:
   // Rcpp_point          - Sample data
@@ -701,6 +731,10 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   int it_num = 0; //keeps track of iteration number
   bool cont = true; //stopping boolean for outside BCD loop
   bool cont2 = true; //stopping boolean for inside CCCP loop
+  arma::vec curconst(des_num); //Running total for current inverse distance sum
+  curconst.fill(0.0);
+  arma::vec runconst(des_num); //Running total for running inverse distance sum
+  runconst.fill(0.0);
   // Rcout << "Hi 1" << endl;
   
   //  Containers for optimization and sampling
@@ -713,6 +747,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   
   //Vectorize design and points  
   std::vector<double> des(des_num*dim_num);
+  std::vector<double> des_up(des_num*dim_num);
   for (int i=0; i<des_num; i++){
     for (int j=0; j<dim_num; j++){
       des[j+i*dim_num] = ini(i,j);
@@ -720,10 +755,15 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   }
   
   //CCP
+  Rcout << "Optimizing ... " << endl;
   while (cont){
     
-    Rcout << "SP: Iteration " << it_num << "/" << it_max << endl;
+    // Rcout << "SP: Iteration " << it_num << "/" << it_max << endl;
+    double prop = (double)it_num/(double)it_max;
+    if (it_num>0){printBar(prop);}
+    
     // time_t start = time(0);
+    curconst.fill(0.0);
   
     //Update prevdes
     for (int i=0; i<des_num; i++){
@@ -735,7 +775,8 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     // Closed-form updates
     
     // Generate sample from F
-    arma::mat rnd(point_num,dim_num);
+    arma::mat rnd(point_num,dim_num); //random sample points
+    arma::vec rnd_wts(point_num); //weights for sample points (supplied from wts)
     if (thin){
       // std::default_random_engine generator;
       // generator.seed(std::time(0));
@@ -745,9 +786,15 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
         for (int j=0; j<dim_num; j++){
           rnd(i,j) = distsamp(ss,j);
         }
+        rnd_wts(i) = wts(ss);
       }
     }else{
       for (int n=0; n<dim_num; n++){
+        
+        for (int i=0; i<point_num; i++){
+          rnd_wts(i) = wts(i);
+        }
+        
         distint = distind(n);
         switch( distint ){
         case 1:
@@ -876,7 +923,6 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
       }
       
       //Summation for sample side
-      double tmpconst = 0.0; //Running total for inverse distance sum
       for (int o=0; o<point_num; o++){
         double tmptol = 0.0; //Running total for norm in denominator
         for (int n=0; n<dim_num; n++){
@@ -884,16 +930,17 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
           tmptol += tmpvec(n);
         }
         tmptol = sqrt(tmptol);
-        tmpconst += 1.0/tmptol;
+        curconst(m) += rnd_wts(o)/tmptol;
         
         for (int n=0; n<dim_num; n++){
-          xprime(n) += rnd(o,n)/tmptol;
+          xprime(n) += rnd_wts(o)*rnd(o,n)/tmptol;
         }
       }
 
       //Scale by inverse distances
+      double denom = (1.0-(n0/(it_num+n0))) * runconst(m) + (n0/(it_num+n0)) * curconst(m);
       for (int n=0; n<dim_num; n++){
-        xprime(n) = xprime(n)/tmpconst;
+        xprime(n) = ( (1.0-(n0/(it_num+n0))) * runconst(m) * prevdes[n+m*dim_num] + (n0/(it_num+n0)) * xprime(n) ) / denom;
       }
 
       //Update bounds
@@ -901,17 +948,19 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
         xprime(n) = min( max( xprime(n), bd(n,0)), bd(n,1));
       }
 
-      //Update point
-      for (int n=0; n<dim_num; n++){
-        des[n+m*dim_num] = xprime(n);
-      }
+      //Update point and constants
       // for (int n=0; n<dim_num; n++){
-      //   des_up[n+m*dim_num] = xprime(n);
+      //   des[n+m*dim_num] = xprime(n);
       // }
+      for (int n=0; n<dim_num; n++){
+        des_up[n+m*dim_num] = xprime(n);
+      }
+      runconst(m) = (1-(n0/(it_num+n0)))*runconst(m) + (n0/(it_num+n0))*curconst(m);
+
     }
     
     // Rcout << "new" << endl;
-    // des = des_up;
+    des = des_up;
 
     // //Output time
     // time_t end = time(0);
@@ -969,7 +1018,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
 NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
                          NumericVector& distind, List distparam, 
                          NumericMatrix& distsamp, bool thin, NumericMatrix& bd,
-                         int point_num, int it_max, double tol, int num_proc){
+                         int point_num, int it_max, int it_min, double tol, int num_proc){
   
   // Description of Inputs:
   // Rcpp_point          - Sample data
@@ -1003,150 +1052,145 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
       des[j+i*dim_num] = ini(i-nini,j);
     }
   }
+  // Rcout << "des: " << des[0] << endl;
+  // Rcout << "des: " << des[(nini+nseq)*dim_num-1] << endl;
   
-  // Rcout << "I got here 1" << endl;
+  bool cont = true;
+  int it_cur = 0;
+  Rcout << "Optimizing ... " << endl;
   
-  //Sequential sampling for nseq samples
-  for (int m=0; m<nseq; m++){
+  while (cont){
     
-    Rcout << "Sequential SPs: point " << (nini+m+1) << endl;
+    double prop = (double)it_cur/(double)it_max;
+    if (it_cur>0){printBar(prop);}
     
-    int it_cur = 0;
-    arma::vec xprime(dim_num); //Current opt. vector
-    arma::vec prevvec(dim_num); //Previous opt. vector
-    for (int n=0; n<dim_num; n++){
-      prevvec(n) = des[n+(nini+m)*dim_num];
-    }
-    bool cont = true;
-    
-    // Rcout << "I got here" << endl;
-    
-    while (cont){
-      // Generate sample from F
-      rst:
-      arma::mat rnd(point_num,dim_num);
-      if (thin){
-        // std::default_random_engine generator;
-        // generator.seed(std::time(0));
-        // Rcout << "I got here 1.1" << endl;
-        std::uniform_int_distribution<int> uddist(0,distsamp.nrow()-1);
-        for (int i=0; i<point_num; i++){
-          int ss = uddist(generator);
-          for (int j=0; j<dim_num; j++){
-            rnd(i,j) = distsamp(ss,j);
-          }
-        }
-        // Rcout << "I got here 1.2" << endl;
-      }else{
-        for (int n=0; n<dim_num; n++){
-          distint = distind(n);
-          switch( distint ){
-          case 1:
-          {
-            SEXP unill = distparam[n];
-            NumericVector uniyy(unill);
-            std::uniform_real_distribution<double> uni_dist (uniyy(0),uniyy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = uni_dist(generator);
-            }
-            break;
-          }
-          case 2:
-          {
-            SEXP normll = distparam[n]; 
-            NumericVector normyy(normll);  
-            std::normal_distribution<double> norm_dist (normyy(0),normyy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = norm_dist(generator);
-            }
-            break;
-          }
-          case 3:
-          {
-            SEXP expll = distparam[n]; 
-            NumericVector expyy(expll);  
-            std::exponential_distribution<double> exp_dist (expyy(0));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = exp_dist(generator);
-            }
-            break;
-          }
-          case 4:
-          {
-            SEXP gamll = distparam[n]; 
-            NumericVector gamyy(gamll);  
-            std::gamma_distribution<double> gam_dist (gamyy(0),gamyy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = gam_dist(generator);
-            }
-            break;
-          }
-          case 5:
-          {
-            SEXP lnll = distparam[n]; 
-            NumericVector lnyy(lnll);  
-            std::lognormal_distribution<double> ln_dist (lnyy(0),lnyy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = ln_dist(generator)/ ( exp(pow(lnyy(1),2.0)-1.0) * exp(2*lnyy(0)+pow(lnyy(1),2.0)) );
-            }
-            break;
-          }
-          case 6:
-          {
-            SEXP tll = distparam[n]; 
-            NumericVector tyy(tll);  
-            std::student_t_distribution<double> t_dist (tyy(0));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = t_dist(generator);
-            }
-            break;
-          }
-          case 7:
-          {
-            SEXP wbll = distparam[n]; 
-            NumericVector wbyy(wbll);  
-            std::weibull_distribution<double> wb_dist (wbyy(0),wbyy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = wb_dist(generator);
-            }
-            break;
-          }
-          case 8:
-          {
-            SEXP cauchll = distparam[n]; 
-            NumericVector cauchyy(cauchll);  
-            std::cauchy_distribution<double> cauch_dist (cauchyy(0),cauchyy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = cauch_dist(generator);
-            }
-            break;
-          }
-          case 9:
-          {
-            SEXP betall = distparam[n]; 
-            NumericVector betayy(betall);  
-            sftrabbit::beta_distribution<> beta_dist (betayy(0),betayy(1));
-            for (int o=0; o<point_num; o++){
-              rnd(o,n) = beta_dist(generator);
-            }
-            break;
-          }
-          }
+    // Generate sample from F
+    rst:
+    arma::mat rnd(point_num,dim_num);
+    if (thin){
+      // std::default_random_engine generator;
+      // generator.seed(std::time(0));
+      std::uniform_int_distribution<int> uddist(0,distsamp.nrow()-1);
+      for (int i=0; i<point_num; i++){
+        int ss = uddist(generator);
+        for (int j=0; j<dim_num; j++){
+          rnd(i,j) = distsamp(ss,j);
         }
       }
+    }else{
+      for (int n=0; n<dim_num; n++){
+        distint = distind(n);
+        switch( distint ){
+        case 1:
+        {
+          SEXP unill = distparam[n];
+          NumericVector uniyy(unill);
+          std::uniform_real_distribution<double> uni_dist (uniyy(0),uniyy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = uni_dist(generator);
+          }
+          break;
+        }
+        case 2:
+        {
+          SEXP normll = distparam[n]; 
+          NumericVector normyy(normll);  
+          std::normal_distribution<double> norm_dist (normyy(0),normyy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = norm_dist(generator);
+          }
+          break;
+        }
+        case 3:
+        {
+          SEXP expll = distparam[n]; 
+          NumericVector expyy(expll);  
+          std::exponential_distribution<double> exp_dist (expyy(0));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = exp_dist(generator);
+          }
+          break;
+        }
+        case 4:
+        {
+          SEXP gamll = distparam[n]; 
+          NumericVector gamyy(gamll);  
+          std::gamma_distribution<double> gam_dist (gamyy(0),gamyy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = gam_dist(generator);
+          }
+          break;
+        }
+        case 5:
+        {
+          SEXP lnll = distparam[n]; 
+          NumericVector lnyy(lnll);  
+          std::lognormal_distribution<double> ln_dist (lnyy(0),lnyy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = ln_dist(generator)/ ( exp(pow(lnyy(1),2.0)-1.0) * exp(2*lnyy(0)+pow(lnyy(1),2.0)) );
+          }
+          break;
+        }
+        case 6:
+        {
+          SEXP tll = distparam[n]; 
+          NumericVector tyy(tll);  
+          std::student_t_distribution<double> t_dist (tyy(0));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = t_dist(generator);
+          }
+          break;
+        }
+        case 7:
+        {
+          SEXP wbll = distparam[n]; 
+          NumericVector wbyy(wbll);  
+          std::weibull_distribution<double> wb_dist (wbyy(0),wbyy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = wb_dist(generator);
+          }
+          break;
+        }
+        case 8:
+        {
+          SEXP cauchll = distparam[n]; 
+          NumericVector cauchyy(cauchll);  
+          std::cauchy_distribution<double> cauch_dist (cauchyy(0),cauchyy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = cauch_dist(generator);
+          }
+          break;
+        }
+        case 9:
+        {
+          SEXP betall = distparam[n]; 
+          NumericVector betayy(betall);  
+          sftrabbit::beta_distribution<> beta_dist (betayy(0),betayy(1));
+          for (int o=0; o<point_num; o++){
+            rnd(o,n) = beta_dist(generator);
+          }
+          break;
+        }
+        }
+      }
+    }
+    
+    //Sequential sampling for nseq samples
+    for (int m=0; m<nseq; m++){
       
+      int it_cur = 0;
+      arma::vec xprime(dim_num); //Current opt. vector
+      arma::vec prevvec(dim_num); //Previous opt. vector
+      for (int n=0; n<dim_num; n++){
+        prevvec(n) = des[n+(nini+m)*dim_num];
+      }
       xprime.fill(0.0);
       arma::vec tmpvec(dim_num); //temp. container
       tmpvec.fill(0.0);
       
-      // Rcout << "1: xprime(0) = " << xprime(0) << endl;
-      
-      // Rcout << "I got here 2.1" << endl;
-      
       //Summation for design part
       double tmptol;
-      for (int o=0; o<(m+nini); o++){
-        
+      for (int o=0; o<(nini+nseq); o++){
         tmptol = 0.0; //Running total for norm in denominator
         for (int n=0; n<dim_num; n++){
           tmpvec(n) = prevvec(n) - des[n+o*dim_num];
@@ -1154,28 +1198,18 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
         }
         tmptol = sqrt(tmptol);
         
-        for (int n=0; n<dim_num; n++){
-          xprime(n) += tmpvec(n)/tmptol;
+        if (tmptol>0.0){
+          for (int n=0; n<dim_num; n++){
+            xprime(n) += tmpvec(n)/tmptol;
+          }
         }
       }
-      
-      // Rcout << "I got here 2.2" << endl;
-      // Rcout << tmptol << endl;
-      
-      if (std::isnan(xprime(0))){
-        goto rst;
-      }
-      
-      // Rcout << "I got here 2.3" << endl;
-      
-      // Rcout << "2: prevvec(0) = " << prevvec(0) << endl;
-      // Rcout << "2: xprime(0) = " << xprime(0) << endl;
+      // Rcout << "xprime: " << xprime << endl;
       
       for (int n=0; n<dim_num; n++){
-        xprime(n) = xprime(n) * (point_num/(m+nini+1));
+        // xprime(n) = xprime(n) * (point_num/(m+nini+1));
+        xprime(n) = xprime(n) * (point_num/(nini+nseq));
       }
-      
-      // Rcout << "3: xprime(0) = " << xprime(0) << endl;
       
       //Summation for sample side
       double tmpconst = 0.0; //Running total for inverse distance sum
@@ -1193,48 +1227,44 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
         }
       }
       
-      // Rcout << "4: xprime(0) = " << xprime(0) << endl;
-      // Rcout << "I got here 2.4" << endl;
-      
       //Scale by inverse distances
       for (int n=0; n<dim_num; n++){
         xprime(n) = xprime(n)/tmpconst;
       }    
-      
-      // Rcout << "5: xprime(0) = " << xprime(0) << endl;
-      // Rcout << "I got here 2.5" << endl;
       
       //Update bounds
       for (int n=0; n<dim_num; n++){
         xprime(n) = min( max( xprime(n), bd(n,0)), bd(n,1));
       }
       
-      //Check tolerance and stop if satisfied
-      double rundiff = 0.0;
+      //Update point
       for (int n=0; n<dim_num; n++){
-        rundiff += abs(xprime(n)-prevvec(n));
+        des[n+(nini+m)*dim_num] = xprime(n);
       }
-      // cout << "rundiff = " << rundiff << endl;
-      // cout << "tol = " << tol << endl;
-      if ((rundiff < tol)||(it_cur>=it_max)){
-        cont = false;
-      }else{
-        it_cur++;
-      }
-      
-      //Update prevvec
-      for (int n=0; n<dim_num; n++){
-        prevvec(n) = xprime(n);
-      }
-      
-      // Rcout << "I got here 2.6" << endl;
-      
     }
     
-    //Update point
-    for (int n=0; n<dim_num; n++){
-      // cout << xprime[0] << endl;
-      des[n+(nini+m)*dim_num] = xprime(n);
+    // //Check tolerance and stop if satisfied
+    // double rundiff = 0.0;
+    // for (int n=0; n<dim_num; n++){
+    //   rundiff += abs(xprime(n)-prevvec(n));
+    // }
+    // // cout << "rundiff = " << rundiff << endl;
+    // // cout << "tol = " << tol << endl;
+    // if ((rundiff < tol)&&(it_cur>=it_min)){
+    //   cont = false;
+    // }else{
+    //   it_cur++;
+    // }
+    
+    // //Update prevvec
+    // for (int n=0; n<dim_num; n++){
+    //   prevvec(n) = xprime(n);
+    // }
+    
+    //Check maximum iterations
+    it_cur++;
+    if (it_cur >= it_max){
+      cont = false;
     }
   }
   
@@ -1242,6 +1272,9 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
   NumericMatrix retdes(nini+nseq, dim_num);
   for (int j=0; j<dim_num; j++){
     for (int i=0; i<(nini+nseq); i++){
+      // if(i==0){
+      //   Rcout << "val: " << des[j+i*dim_num] << endl;
+      // }
       retdes(i,j) = des[j+i*dim_num];
     }
   }
