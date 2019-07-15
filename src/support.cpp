@@ -12,9 +12,9 @@
 #include <sstream>
 #include <string>
 #include <random>
-// #ifdef _OPENMP
-// #include <omp.h>
-// #endif
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 using namespace Rcpp;
 using namespace std;
@@ -713,6 +713,7 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 //-------------------------------------------------------------------------------
 // SP and PSP for standard distributions (including asymptotic approximation for large p)
 //-------------------------------------------------------------------------------
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
                              NumericVector& distind, List distparam, 
@@ -726,8 +727,6 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   // it_max              - Maximum number of iterations
   // tol                 - Tolerance for stopping blockwise updates
   
-  // std::srand ( unsigned ( std::time(0) ) ); // random seed
-  
   int it_num = 0; //keeps track of iteration number
   bool cont = true; //stopping boolean for outside BCD loop
   bool cont2 = true; //stopping boolean for inside CCCP loop
@@ -735,13 +734,15 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   curconst.fill(0.0);
   arma::vec runconst(des_num); //Running total for running inverse distance sum
   runconst.fill(0.0);
-  // Rcout << "Hi 1" << endl;
+  // int point_num = subsampfac*des_num;
+  // Rcout << wtst << endl;
+  
   
   //  Containers for optimization and sampling
   std::vector<double> prevdes(des_num*dim_num);
   // std::vector<double> tmpvec(dim_num);
   std::default_random_engine generator;
-  // generator.seed(std::time(0));
+  generator.seed(std::random_device{}());
   int distint = 0;
   // omp_set_num_threads(num_proc);
   
@@ -783,11 +784,13 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
       std::uniform_int_distribution<int> uddist(0,distsamp.nrow()-1);
       for (int i=0; i<point_num; i++){
         int ss = uddist(generator);
+        // int ss = i;
         for (int j=0; j<dim_num; j++){
           rnd(i,j) = distsamp(ss,j);
         }
         rnd_wts(i) = wts(ss);
       }
+      // Rcout << "I got here!" << endl;
     }else{
       for (int n=0; n<dim_num; n++){
         
@@ -893,7 +896,9 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     
     //Parallelize computation
-    // #pragma omp parallel for
+    // Rcout << num_proc << endl;
+    omp_set_num_threads(num_proc);
+    #pragma omp parallel for
     for (int m=0; m<des_num; m++){
       
       arma::vec xprime(dim_num);
@@ -919,7 +924,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
       }
       
       for (int n=0; n<dim_num; n++){
-        xprime(n) = xprime(n) * (point_num/des_num);
+        xprime(n) = xprime(n) * ((double)point_num/(double)des_num);
       }
       
       //Summation for sample side
@@ -939,8 +944,10 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
 
       //Scale by inverse distances
       double denom = (1.0-(n0/(it_num+n0))) * runconst(m) + (n0/(it_num+n0)) * curconst(m);
+      // double denom = curconst(m);
       for (int n=0; n<dim_num; n++){
         xprime(n) = ( (1.0-(n0/(it_num+n0))) * runconst(m) * prevdes[n+m*dim_num] + (n0/(it_num+n0)) * xprime(n) ) / denom;
+        // xprime(n) = xprime(n)/ denom;
       }
 
       //Update bounds
@@ -1014,6 +1021,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   
 }
 
+// [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
                          NumericVector& distind, List distparam, 
@@ -1042,6 +1050,7 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
   
   //Vectorize design and points  
   std::vector<double> des((nini+nseq)*dim_num);
+  std::vector<double> des_up((nini+nseq)*dim_num);
   for (int i=0; i<nini; i++){
     for (int j=0; j<dim_num; j++){
       des[j+i*dim_num] = cur(i,j);
@@ -1052,6 +1061,7 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
       des[j+i*dim_num] = ini(i-nini,j);
     }
   }
+  des_up = des;
   // Rcout << "des: " << des[0] << endl;
   // Rcout << "des: " << des[(nini+nseq)*dim_num-1] << endl;
   
@@ -1066,7 +1076,7 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
     
     // Generate sample from F
     rst:
-    arma::mat rnd(point_num,dim_num);
+      arma::mat rnd(point_num,dim_num);
     if (thin){
       // std::default_random_engine generator;
       // generator.seed(std::time(0));
@@ -1176,9 +1186,11 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
     }
     
     //Sequential sampling for nseq samples
+    omp_set_num_threads(num_proc);
+    #pragma omp parallel for
     for (int m=0; m<nseq; m++){
       
-      int it_cur = 0;
+      // int it_cur = 0;
       arma::vec xprime(dim_num); //Current opt. vector
       arma::vec prevvec(dim_num); //Previous opt. vector
       for (int n=0; n<dim_num; n++){
@@ -1208,7 +1220,7 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
       
       for (int n=0; n<dim_num; n++){
         // xprime(n) = xprime(n) * (point_num/(m+nini+1));
-        xprime(n) = xprime(n) * (point_num/(nini+nseq));
+        xprime(n) = xprime(n) * ((double)point_num/(double)(nini+nseq));
       }
       
       //Summation for sample side
@@ -1239,8 +1251,9 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
       
       //Update point
       for (int n=0; n<dim_num; n++){
-        des[n+(nini+m)*dim_num] = xprime(n);
+        des_up[n+(nini+m)*dim_num] = xprime(n);
       }
+      
     }
     
     // //Check tolerance and stop if satisfied
@@ -1260,6 +1273,8 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
     // for (int n=0; n<dim_num; n++){
     //   prevvec(n) = xprime(n);
     // }
+    
+    des = des_up;
     
     //Check maximum iterations
     it_cur++;
@@ -1282,6 +1297,7 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
   return(retdes);
   
 }
+
 
 // [[Rcpp::export]]
 double gamma_eval(arma::vec& dd, arma::vec& theta){

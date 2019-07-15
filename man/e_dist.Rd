@@ -34,7 +34,10 @@
 Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics based on distances. \emph{Journal of Statistical Planning and Inference}, 143(8):1249-1272.
 }
 \examples{
-  #Generate 25 SPs for the 2-d i.i.d. N(0,1) distribution
+  \dontrun{
+  #############################################################
+  # Generate 25 SPs for the 2-d i.i.d. N(0,1) distribution
+  #############################################################
   n <- 25 #number of points
   p <- 2 #dimension
   D <- sp(n,p,dist.str=rep("normal",p))
@@ -42,7 +45,10 @@ Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics
   e_dist(D$sp,dist.str=rep("normal",p)) #smaller
   e_dist(Drnd,dist.str=rep("normal",p))
   
-  \dontrun{
+  
+    #############################################################
+    # Support points for big data reduction: Franke's function
+    #############################################################
     library(MHadaptive)
     
     #Use modified Franke's function as posterior

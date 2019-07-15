@@ -1,10 +1,12 @@
 sp <- function(n, p, ini=NA,
                dist.str=NA, dist.param=vector("list",p),
                dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
-               num.subsamp=max(10000,50*n), iter.max=max(250,iter.min), iter.min=50,
-               tol.out=1e-6*sqrt(p), warm.cl=F, n0=n*p){
+               num.subsamp=ifelse(any(is.na(dist.samp)),
+               max(10000,10*n),min(10000,nrow(dist.samp))),
+               iter.max=max(250,iter.min), iter.min=50,
+               tol=1e-10, par.flg=TRUE, n0=n*p){
   
-  #Set std.flg (standard dist'n or data reduction)
+  #Set std.flg (standard distn or data reduction)
   if (!any(is.na(dist.samp))&&any(is.na(dist.str))){
     # data reduction
     std.flg = F;
@@ -32,9 +34,17 @@ sp <- function(n, p, ini=NA,
     }
   }
   
+  # Set cores
+  if (par.flg){
+    num.cores <- parallel::detectCores()
+  }else{
+    num.cores <- 1
+  }
+  # print(num.cores)
+  
   #Standard distributions
   if (std.flg){
-    dist.samp <- matrix()
+    dist.samp <- matrix(-1,nrow=2,ncol=2)
     #Encoding distribution string
     dist.vec <- c("uniform","normal","exponential","gamma","lognormal","student-t","weibull","cauchy","beta")
     dist.ind <- rep(NA,p)
@@ -102,14 +112,10 @@ sp <- function(n, p, ini=NA,
       }
     }
     
-    num.subsamp <- max(num.subsamp, 25*n)
     des <- sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,FALSE,
-                  bd,num.subsamp,iter.max,iter.min,tol.out,parallel::detectCores(),n0,wts)
+                  bd,num.subsamp,iter.max,iter.min,tol,num.cores,n0,wts)
     
   }else{
-    
-    #Set subsample size
-    num.subsamp <- min(num.subsamp, nrow(dist.samp))
     
     #Standardize
     if (scale.flg==T){
@@ -127,12 +133,7 @@ sp <- function(n, p, ini=NA,
     dist.param <- list(NA)
     #Setting bounds and initial point set
     if (any(is.na(ini))){
-      if (warm.cl){
-        nn <- min(nrow(dist.samp),1e6)
-        ini <- stats::kmeans(dist.samp[sample(1:nrow(dist.samp),nn,F),],centers=n)$centers
-      }else{
-        ini <- jitter(dist.samp[sample(1:nrow(dist.samp),n,F),])
-      }
+      ini <- jitter(dist.samp[sample(1:nrow(dist.samp),n,F),])
     }else{
       ini <- sweep(sweep(ini,2,mmpts,"-"),2,sdpts,"/")
     }
@@ -147,9 +148,8 @@ sp <- function(n, p, ini=NA,
       }
     }
     
-    num.subsamp <- max(num.subsamp, 25*n)
     des <- sp_cpp(n,p,ini,dist.ind,dist.param,dist.samp,TRUE,
-                  bd,num.subsamp,iter.max,iter.min,tol.out,parallel::detectCores(),n0,wts)
+                  bd,num.subsamp,iter.max,iter.min,tol,num.cores,n0,wts)
     
     #Scale back
     if (scale.flg==T){
@@ -159,12 +159,6 @@ sp <- function(n, p, ini=NA,
     
     
   }
-  
-  #Compute support points
-  # if (asymp){
-  # des <- std_largep_cpp(n,p,num_iter,num_inn_iter,tol_inn,tol.out,eps,dist.ind,dist.param,0,1)
-  # }
-  # else{
-  
+
   return(list(sp=des,ini=ini))
 }

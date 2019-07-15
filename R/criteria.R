@@ -30,7 +30,7 @@ e_dist <- function(D, dist.str=NA, dist.param=vector("list",ncol(D)),
     }
     
     #Sample big sample
-    bigsamp <- matrix(NA,nrow=nsamp,ncol=p)
+    bigsamp <- randtoolbox::sobol(nsamp,p)
     for (i in 1:p){
       if (is.null(dist.param[[i]])){
         switch(dist.ind[i],
@@ -45,16 +45,17 @@ e_dist <- function(D, dist.str=NA, dist.param=vector("list",ncol(D)),
                "9" = {dist.param[[i]] <- c(2,4)} #beta
         )
       }
+      
       switch(dist.ind[i],
-             "1" = {bigsamp[,i] <- stats::runif(nsamp, dist.param[[i]][1],dist.param[[i]][2])},
-             "2" = {bigsamp[,i] <- stats::rnorm(nsamp, dist.param[[i]][1],dist.param[[i]][2])},
-             "3" = {bigsamp[,i] <- stats::rexp(nsamp, dist.param[[i]][1])},
-             "4" = {bigsamp[,i] <- stats::rgamma(nsamp, shape=dist.param[[i]][1], scale=dist.param[[i]][2])},
-             "5" = {bigsamp[,i] <- stats::rlnorm(nsamp, dist.param[[i]][1],dist.param[[i]][2])},
-             "6" = {bigsamp[,i] <- stats::rt(nsamp, df=dist.param[[i]][1])},
-             "7" = {bigsamp[,i] <- stats::rweibull(nsamp, dist.param[[i]][1],dist.param[[i]][2])},
-             "8" = {bigsamp[,i] <- stats::rcauchy(nsamp, dist.param[[i]][1],dist.param[[i]][2])},
-             "9" = {bigsamp[,i] <- stats::rbeta(nsamp, dist.param[[i]][1],dist.param[[i]][2])}
+             "1" = {bigsamp[,i] <- stats::qunif(bigsamp[,i], dist.param[[i]][1],dist.param[[i]][2])},
+             "2" = {bigsamp[,i] <- stats::qnorm(bigsamp[,i], dist.param[[i]][1],dist.param[[i]][2])},
+             "3" = {bigsamp[,i] <- stats::qexp(bigsamp[,i], dist.param[[i]][1])},
+             "4" = {bigsamp[,i] <- stats::qgamma(bigsamp[,i], shape=dist.param[[i]][1], scale=dist.param[[i]][2])},
+             "5" = {bigsamp[,i] <- stats::qlnorm(bigsamp[,i], dist.param[[i]][1],dist.param[[i]][2])},
+             "6" = {bigsamp[,i] <- stats::qt(bigsamp[,i], df=dist.param[[i]][1])},
+             "7" = {bigsamp[,i] <- stats::qweibull(bigsamp[,i], dist.param[[i]][1],dist.param[[i]][2])},
+             "8" = {bigsamp[,i] <- stats::qcauchy(bigsamp[,i], dist.param[[i]][1],dist.param[[i]][2])},
+             "9" = {bigsamp[,i] <- stats::qbeta(bigsamp[,i], dist.param[[i]][1],dist.param[[i]][2])}
       )
     }
     

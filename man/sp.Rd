@@ -11,8 +11,10 @@
   sp(n, p, ini=NA,
     dist.str=NA, dist.param=vector("list",p),
     dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
-    num.subsamp=max(10000,50*n), iter.max=max(250,iter.min), iter.min=50,
-    tol.out=1e-6*sqrt(p), warm.cl=F, n0=n*p)
+    num.subsamp=ifelse(any(is.na(dist.samp)),
+    max(10000,10*n),min(10000,nrow(dist.samp))),
+    iter.max=max(250,iter.min), iter.min=50,
+    tol=1e-10, par.flg=TRUE, n0=n*p)
 }
 \arguments{
   \item{n}{Number of support points.}
@@ -36,11 +38,11 @@
   \item{scale.flg}{Should the big data \code{dist.samp} be normalized to unit variance before processing?}
   \item{wts}{Weights on each data point in \code{dist.samp}. Uniform weights are assigned if \code{NA}.}
   \item{bd}{A \eqn{p} x \eqn{2} matrix for the lower and upper bounds of each variable.}
-  \item{num.subsamp}{Batch size for resampling.}
+  \item{num.subsamp}{Batch size for resampling. For distributions, the default is \code{max(10000,10*n)}. For data reduction, the default is \code{min(10000,nrow(dist.samp))}.}
   \item{iter.max}{Maximum iterations for optimization.}
   \item{iter.min}{Minimum iterations for optimization.}
-  \item{tol.out}{Error tolerance for optimization.}
-  \item{warm.cl}{Should the initial solution be pre-processed via clustering?}
+  \item{tol}{Error tolerance for optimization.}
+  \item{par.flg}{Should parallelization be used?}
   \item{n0}{Momentum parameter for optimization.}
 }
 \value{
@@ -51,7 +53,10 @@
 Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 46(6A):2562-2592.
 }
 \examples{
-    ## Support points on distributions
+  \dontrun{
+    #############################################################
+    # Support points on distributions
+    #############################################################
     
     #Generate 25 SPs for the 2-d i.i.d. N(0,1) distribution
     n <- 25 #number of points
@@ -64,8 +69,9 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     contour.default(x=x1,y=x2,z=z,drawlabels=FALSE,nlevels=10)
     points(D$sp,pch=16,cex=1.25,col="red")
     
-  \dontrun{
-    #Generate 50 SPs for the 2-d i.i.d. Beta(2,4) distribution
+    #############################################################
+    # Generate 50 SPs for the 2-d i.i.d. Beta(2,4) distribution
+    #############################################################
     n <- 50
     p <- 2
     dist.param <- vector("list",p)
@@ -85,13 +91,17 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     contour.default(x=x1,y=x2,z=z,drawlabels=FALSE,nlevels=10 )
     points(D$sp,pch=16,cex=1.25,col="red")
     
-    #Generate 100 SPs for the 3-d i.i.d. Exp(1) distribution
+    #############################################################
+    # Generate 100 SPs for the 3-d i.i.d. Exp(1) distribution
+    #############################################################
     n <- 100
     p <- 3
     D <- sp(n,p,dist.str=rep("exponential",p))
     pairs(D$sp,xlim=c(0,5),ylim=c(0,5),pch=16)
     
-    ## Support points for big data reduction: Franke's function
+    #############################################################
+    # Support points for big data reduction: Franke's function
+    #############################################################
     library(MHadaptive)
     
     #Use modified Franke's function as posterior
@@ -141,7 +151,9 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     contour.default(x=x1,y=x2,z=z,drawlabels=TRUE,nlevels=10) #contour
     points(D$sp,pch=16,cex=1.25,col="red")
 
-    ## Support points for big data: Rosenbrock distribution
+    #############################################################
+    # Support points for big data: Rosenbrock distribution
+    #############################################################
     
     #Use Rosenbrock function as posterior
     rosen2d <- function(x) {
@@ -159,7 +171,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     
     #Compute n SPs
     n <- 100
-    D <- sp(n,2,dist.samp=mcmc_r$trace,warm.cl=T)
+    D <- sp(n,2,dist.samp=mcmc_r$trace)
     
     #Plot SPs
     x1 <- seq(-25,25,length.out=100) #contours

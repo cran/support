@@ -1,8 +1,11 @@
 sp_seq <- function(D, nseq, ini=NA, num.rep=1,
                    dist.str=NA, dist.param=vector("list",p),
                    dist.samp=NA, scale.flg=T, bd=NA, 
-                   num.subsamp=max(10000,50*nseq), iter.max=max(200,iter.min), iter.min=50,
-                   tol.out=1e-6*sqrt(p)){
+                   num.subsamp=ifelse(any(is.na(dist.samp)),
+                   max(10000,10*(nseq+nrow(D))),
+                   min(10000,nrow(dist.samp))),
+                   iter.max=max(200,iter.min), iter.min=50,
+                   tol=1e-10, par.flg=TRUE){
 
   cur <- D
   p <- ncol(cur)
@@ -19,6 +22,13 @@ sp_seq <- function(D, nseq, ini=NA, num.rep=1,
   }
   else{
     stop("Exactly one of 'dist.samp' or 'dist.str' should be NA.")
+  }
+  
+  # Set cores
+  if (par.flg){
+    num.cores <- parallel::detectCores()
+  }else{
+    num.cores <- 1
   }
   
   seq.lst <- vector("list",num.rep) # random restarts
@@ -96,12 +106,12 @@ sp_seq <- function(D, nseq, ini=NA, num.rep=1,
       }
       
       des <- sp_seq_cpp(cur,nseq,ini,dist.ind,dist.param,dist.samp,FALSE,
-                        bd,num.subsamp,iter.max,iter.min,tol.out,parallel::detectCores())
+                        bd,num.subsamp,iter.max,iter.min,tol,num.cores)
       
     }else{
       
-      #Set subsample size
-      num.subsamp <- min(num.subsamp, nrow(dist.samp))
+      # #Set subsample size
+      # num.subsamp <- min(num.subsamp, nrow(dist.samp))
       
       #Standardize
       if (scale.flg==T){
@@ -133,9 +143,9 @@ sp_seq <- function(D, nseq, ini=NA, num.rep=1,
       # print(rbind(cur,ini))
       # print(dist.samp)
       
-      num.subsamp <- max(num.subsamp, 25*nseq)
+      # num.subsamp <- max(num.subsamp, 25*nseq)
       des <- sp_seq_cpp(cur,nseq,ini,dist.ind,dist.param,dist.samp,TRUE,
-                        bd,num.subsamp,iter.max,iter.min,tol.out,parallel::detectCores())    
+                        bd,num.subsamp,iter.max,iter.min,tol,num.cores)    
 
       #Scale back
       if (scale.flg==T){

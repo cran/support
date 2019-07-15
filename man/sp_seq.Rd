@@ -9,10 +9,13 @@
 }
 \usage{
   sp_seq(D, nseq, ini=NA, num.rep=1,
-      dist.str=NA, dist.param=vector("list",p),
-      dist.samp=NA, scale.flg=T, bd=NA, 
-      num.subsamp=max(10000,50*nseq), iter.max=max(200,iter.min), iter.min=50,
-      tol.out=1e-6*sqrt(p))
+        dist.str=NA, dist.param=vector("list",p),
+        dist.samp=NA, scale.flg=T, bd=NA, 
+        num.subsamp=ifelse(any(is.na(dist.samp)),
+        max(10000,10*(nseq+nrow(D))),
+        min(10000,nrow(dist.samp))),
+        iter.max=max(200,iter.min), iter.min=50,
+        tol=1e-10, par.flg=TRUE)
 }
 \arguments{
   \item{D}{An \eqn{n} x \eqn{p} matrix for the current point set.}
@@ -36,10 +39,11 @@
   \item{dist.samp}{An \eqn{N} x \eqn{p} matrix for the big dataset (e.g., MCMC chain) to be reduced. Exactly one of \code{dist.str} or \code{dist.samp} should be \code{NA}.}
   \item{scale.flg}{Should the big data \code{dist.samp} be normalized to unit variance before processing?}
   \item{bd}{A \eqn{p} x \eqn{2} matrix for the lower and upper bounds of each variable.}
-  \item{num.subsamp}{Batch size for resampling.}
+  \item{num.subsamp}{Batch size for resampling. For distributions, the default is \code{max(10000,10*n)}. For data reduction, the default is \code{min(10000,nrow(dist.samp))}.}
   \item{iter.max}{Maximum iterations for optimization.}
   \item{iter.min}{Minimum iterations for optimization.}
-  \item{tol.out}{Error tolerance for optimization.}
+  \item{tol}{Error tolerance for optimization.}
+  \item{par.flg}{Should parallelization be used?}
 }
 \value{
   \item{D}{An \eqn{n} x \eqn{p} matrix for the current point set.}
@@ -52,7 +56,9 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
   ## Support points on standard distributions
   
   \dontrun{
-    #Generate 50 SPs for the 2-d i.i.d. N(0,1) distribution
+    #############################################################
+    # Generate 50 SPs for the 2-d i.i.d. N(0,1) distribution
+    #############################################################
     ncur <- 50
     cur.sp <- sp(ncur,2,dist.str=rep("normal",2))$sp
     
@@ -67,7 +73,9 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     points(cur.sp,pch=4,cex=1.25,col="black",lwd=2) # (current in black)
     points(seq.sp,pch=16,cex=1.25,col="red")        # (new SPs in red)
     
-    ## Support points for big data reduction: Franke distribution
+    #############################################################
+    # Support points for big data reduction: Franke distribution
+    #############################################################
     library(MHadaptive)
     
     #Use modified Franke's function as posterior
