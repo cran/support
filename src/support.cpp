@@ -6,7 +6,6 @@
 #include <vector>
 #include <float.h>
 #include <boost/any.hpp>
-// #include <omp.h>
 #include <time.h>
 #include <limits.h>
 #include <sstream>
@@ -226,7 +225,7 @@ double energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des) {
       for (int j=0; j<point_num; j++){
         double runcrittmp = 0.0;
         for (int k=0; k<dim_num; k++){
-          runcrittmp += pow(abs(Rcpp_point(j,k) - Rcpp_des(i,k)), 2.0);
+          runcrittmp += pow(Rcpp_point(j,k) - Rcpp_des(i,k), 2.0);
         }
         runcrit += sqrt(runcrittmp);
       }
@@ -238,7 +237,7 @@ double energycrit(NumericMatrix& Rcpp_point, NumericMatrix& Rcpp_des) {
       for (int j=0; j<des_num; j++){
         double runcrittmp2 = 0.0;
         for (int k=0; k<dim_num; k++){
-          runcrittmp2 += pow(abs(Rcpp_des(i,k) - Rcpp_des(j,k)), 2.0);
+          runcrittmp2 += pow(Rcpp_des(i,k) - Rcpp_des(j,k), 2.0);
         }
         runcrit2 += sqrt(runcrittmp2);
       }
@@ -718,7 +717,8 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
                              NumericVector& distind, List distparam, 
                              NumericMatrix& distsamp, bool thin, NumericMatrix& bd,
-                             int point_num, int it_max, int it_min, double tol, int num_proc, double n0, NumericVector& wts){
+                             int point_num, int it_max, int it_min, double tol, 
+                             int num_proc, double n0, NumericVector& wts, bool rnd_flg){
   
   // Description of Inputs:
   // Rcpp_point          - Sample data
@@ -734,6 +734,8 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   curconst.fill(0.0);
   arma::vec runconst(des_num); //Running total for running inverse distance sum
   runconst.fill(0.0);
+  arma::vec runconst_up(des_num); //Running total for running inverse distance sum (temporary container)
+  runconst_up.fill(0.0);
   // int point_num = subsampfac*des_num;
   // Rcout << wtst << endl;
   
@@ -746,7 +748,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   int distint = 0;
   // omp_set_num_threads(num_proc);
   
-  //Vectorize design and points  
+  //Vectorize (copy) design and points  
   std::vector<double> des(des_num*dim_num);
   std::vector<double> des_up(des_num*dim_num);
   for (int i=0; i<des_num; i++){
@@ -756,6 +758,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   }
   
   //CCP
+  double nug = 0.0; // nugget
   Rcout << "Optimizing ... " << endl;
   while (cont){
     
@@ -765,6 +768,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     // time_t start = time(0);
     curconst.fill(0.0);
+    bool nanflg = false;
   
     //Update prevdes
     for (int i=0; i<des_num; i++){
@@ -783,8 +787,13 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
       // generator.seed(std::time(0));
       std::uniform_int_distribution<int> uddist(0,distsamp.nrow()-1);
       for (int i=0; i<point_num; i++){
-        int ss = uddist(generator);
-        // int ss = i;
+        int ss;
+        if (rnd_flg){
+          ss = uddist(generator);
+        }else{
+          // cout << "I got here" << endl;
+          ss = i;
+        }
         for (int j=0; j<dim_num; j++){
           rnd(i,j) = distsamp(ss,j);
         }
@@ -897,8 +906,10 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     //Parallelize computation
     // Rcout << num_proc << endl;
+    #ifdef _OPENMP
     omp_set_num_threads(num_proc);
     #pragma omp parallel for
+    #endif
     for (int m=0; m<des_num; m++){
       
       arma::vec xprime(dim_num);
@@ -915,10 +926,14 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
             tmpvec(n) = prevdes[n+m*dim_num] - prevdes[n+o*dim_num];
             tmptol += pow(tmpvec(n),2.0);
           }
+          // if( tmptol <= 1e-300 ){
+          //   cout << "design: " << tmptol << endl;
+          // }
           tmptol = sqrt(tmptol);
           
           for (int n=0; n<dim_num; n++){
-            xprime(n) += tmpvec(n)/tmptol;
+            // xprime(n) += tmpvec(n)/tmptol;
+            xprime(n) += tmpvec(n)/(tmptol+nug*DBL_MIN);
           }
         }
       }
@@ -931,14 +946,22 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
       for (int o=0; o<point_num; o++){
         double tmptol = 0.0; //Running total for norm in denominator
         for (int n=0; n<dim_num; n++){
-          tmpvec(n) = pow(rnd(o,n) - prevdes[n+m*dim_num],2);
-          tmptol += tmpvec(n);
+          // tmpvec(n) = pow(rnd(o,n) - prevdes[n+m*dim_num],2.0);
+          // tmptol += tmpvec(n);
+          tmptol += pow( rnd(o,n) - prevdes[n+m*dim_num],2.0);
         }
         tmptol = sqrt(tmptol);
-        curconst(m) += rnd_wts(o)/tmptol;
+        // curconst(m) += ((long double)rnd_wts(o))/tmptol;
+        curconst(m) += rnd_wts(o)/(tmptol+(nug*DBL_MIN));
+        // if( tmptol <= 1e-14 ){
+        //   cout << "tmptol: " << tmptol << endl;
+        //   cout << "tmptol+nug: " << (tmptol+(nug*DBL_MIN)) << endl;
+        //   cout << "1/(tmptol+nug): " << 1.0/(tmptol+(nug*DBL_MIN)) << endl;
+        // }
         
         for (int n=0; n<dim_num; n++){
-          xprime(n) += rnd_wts(o)*rnd(o,n)/tmptol;
+          // xprime(n) += ((long double)rnd_wts(o)*rnd(o,n))/tmptol;
+          xprime(n) += rnd_wts(o)*rnd(o,n)/(tmptol+(nug*DBL_MIN));
         }
       }
 
@@ -955,19 +978,40 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
         xprime(n) = min( max( xprime(n), bd(n,0)), bd(n,1));
       }
 
-      //Update point and constants
+      //Update points, constants, nanflg
       // for (int n=0; n<dim_num; n++){
       //   des[n+m*dim_num] = xprime(n);
       // }
       for (int n=0; n<dim_num; n++){
         des_up[n+m*dim_num] = xprime(n);
+        if (isnan(xprime(n))){
+          nanflg = true;
+        }
       }
-      runconst(m) = (1-(n0/(it_num+n0)))*runconst(m) + (n0/(it_num+n0))*curconst(m);
+      runconst_up(m) = (1-(n0/(it_num+n0)))*runconst(m) + (n0/(it_num+n0))*curconst(m);
+      
+      // Rcout << curconst(m) << endl;
+      // Rcout << nug*DBL_MIN << endl;
 
     }
     
-    // Rcout << "new" << endl;
-    des = des_up;
+    //check nanflg
+    if (nanflg){
+      //increase nugget & reset
+      nug += 1.0;
+      // it_num = 0;
+      // for (int i=0; i<des_num; i++){
+      //   for (int j=0; j<dim_num; j++){
+      //     des[j+i*dim_num] = ini(i,j);
+      //   }
+      // }
+      runconst.fill(0.0);
+      Rcout << endl << "Numerical instablities encountered... resetting optimization" << endl;
+    }else{
+      des = des_up; // update points & running constant
+      runconst = runconst_up;
+    }
+    // Rcout << "Increasing nugget " << nug << endl;
 
     // //Output time
     // time_t end = time(0);
@@ -976,10 +1020,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     //Increment and update cont flag 
     it_num++;
-    //Check maximum iterations
-    if (it_num >= it_max){
-      cont = false;
-    }
+    
     //Check convergence (point with maximum movement)
     double maxdiff = 0.0;
     double rundiff = 0.0;
@@ -991,12 +1032,17 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
       maxdiff = max(maxdiff,rundiff);
     }
     // Rcout << "maxdiff: " << maxdiff << endl;
-    
-    if ( (maxdiff < tol) && (it_num >= it_min) ){
+    if ( (maxdiff < tol) && (it_num >= it_min) && (!nanflg) ){
       cont = false;
+      Rcout << endl << "Tolerance level reached: done!" << endl;
     }
     
-    //      cont = false;//////
+    //Check maximum iterations
+    if ( (it_num >= it_max) && (!nanflg) ){
+      cont = false;
+      Rcout << endl << "Maximum iterations reached: done!" << endl;
+    }
+    
   }
   
   //Output the final NumericMatrix 
@@ -1186,8 +1232,10 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
     }
     
     //Sequential sampling for nseq samples
+    #ifdef _OPENMP
     omp_set_num_threads(num_proc);
     #pragma omp parallel for
+    #endif
     for (int m=0; m<nseq; m++){
       
       // int it_cur = 0;
@@ -1504,10 +1552,10 @@ arma::vec psp_mi(arma::vec& xx, arma::mat& omega_mat, arma::mat& samp_mat,
 
 // [[Rcpp::export]]
 NumericMatrix psp_cpp(NumericMatrix& Rcpp_inides, NumericVector& distind, List distparam,
-             NumericVector& gam_param, arma::vec& gamma_vec, int max_ord,
-             NumericMatrix& distsamp, bool thinind,
-             NumericMatrix& gamsamp, bool gamind, NumericMatrix& bd,
-             int point_num, int gam_point_num, int it_max, double tol, int num_proc){
+                      NumericVector& gam_param, arma::vec& gamma_vec, int max_ord,
+                      NumericMatrix& distsamp, bool thinind,
+                      NumericMatrix& gamsamp, bool gamind, NumericMatrix& bd,
+                      int point_num, int gam_point_num, int it_max, double tol, int num_proc){
   // Description of Inputs:
   // Rcpp_point          - Sample data
   // Rcpp_inides         - Initial design
@@ -1671,51 +1719,51 @@ NumericMatrix psp_cpp(NumericMatrix& Rcpp_inides, NumericVector& distind, List d
       }
     }
     
-    // cout << gamsamp << endl;
-    // cout << theta_mat << endl;
-    // cout << gamma_vec << endl;
-    // cout << omega_mat << endl;
-    
-    //Generate sample from \theta
-    if (gamind){
-      std::uniform_int_distribution<int> uddist(0,gamsamp.nrow()-1);
-      for (int i=0; i<gam_point_num; i++){
-        int ss = uddist(generator);
-        for (int j=0; j<dim_num; j++){
-          theta_mat(i,j) = gamsamp(ss,j);
-        }
-      }
-    }
-    else{
-      std::gamma_distribution<double> dist(gam_shape,1.0/gam_rate);
-      for (int i=0; i<gam_point_num; i++){
-        for (int n=0; n<dim_num; n++){
-          theta_mat(i,n) = dist(generator);
-        }
-      }
-    }
-    
-    //Compute omegas
-    for (int o=0; o<gam_point_num; o++){
-      for (int n=0; n<dim_num; n++){
-        theta_vec(n) = theta_mat(o,n);
-      }
-      omega_vec = omega(theta_vec,gamma_vec,max_ord);
-      omega_mat.col(o) = omega_vec;
-    }
-    
-    // //Randomize optimization order
-    // std::vector<int> desord(des_num);
-    // for (int m=0; m<des_num; m++){
-    //   desord[m] = m;
+    // // cout << gamsamp << endl;
+    // // cout << theta_mat << endl;
+    // // cout << gamma_vec << endl;
+    // // cout << omega_mat << endl;
+    // 
+    // //Generate sample from \theta
+    // if (gamind){
+    //   std::uniform_int_distribution<int> uddist(0,gamsamp.nrow()-1);
+    //   for (int i=0; i<gam_point_num; i++){
+    //     int ss = uddist(generator);
+    //     for (int j=0; j<dim_num; j++){
+    //       theta_mat(i,j) = gamsamp(ss,j);
+    //     }
+    //   }
     // }
-    // std::random_shuffle( desord.begin(), desord.end() );
+    // else{
+    //   std::gamma_distribution<double> dist(gam_shape,1.0/gam_rate);
+    //   for (int i=0; i<gam_point_num; i++){
+    //     for (int n=0; n<dim_num; n++){
+    //       theta_mat(i,n) = dist(generator);
+    //     }
+    //   }
+    // }
+    // 
+    // //Compute omegas
+    // for (int o=0; o<gam_point_num; o++){
+    //   for (int n=0; n<dim_num; n++){
+    //     theta_vec(n) = theta_mat(o,n);
+    //   }
+    //   omega_vec = omega(theta_vec,gamma_vec,max_ord);
+    //   omega_mat.col(o) = omega_vec;
+    // }
+    // 
+    // // //Randomize optimization order
+    // // std::vector<int> desord(des_num);
+    // // for (int m=0; m<des_num; m++){
+    // //   desord[m] = m;
+    // // }
+    // // std::random_shuffle( desord.begin(), desord.end() );
+    // 
     
     //Parallelize computation
     // #pragma omp parallel for
     for (int m=0; m<des_num; m++){
-      // int m=0;
-      
+
       //Declare variables
       vec runMat(dim_num);
       vec runVec(dim_num);
@@ -1729,14 +1777,10 @@ NumericMatrix psp_cpp(NumericMatrix& Rcpp_inides, NumericVector& distind, List d
       //Reset current point
       for (int n=0; n<dim_num; n++){
         xprime[n] = des[n+m*dim_num];
-        // xprime[n] = des[n+desord[m]*dim_num];
       }
       
       //Update using closed-form formula:
       xprime = psp_mi(xprime, omega_mat, rnd, des, des_num, m);
-      // xprime = psp_mi(xprime, omega_mat, rnd, des, des_num, desord[m]);
-      // cout << des[0] << des[1] << endl;
-      // cout << xprime << endl;
       
       //Update bounds
       for (int n=0; n<dim_num; n++){
@@ -1791,8 +1835,8 @@ NumericMatrix psp_cpp(NumericMatrix& Rcpp_inides, NumericVector& distind, List d
   }
   
   stop:
-  //Output the final NumericMatrix
-  NumericMatrix retdes(des_num, dim_num);
+    //Output the final NumericMatrix
+    NumericMatrix retdes(des_num, dim_num);
   for (int i=0; i<des_num; i++){
     for (int j=0; j<dim_num; j++){
       retdes(i,j) = des[j+i*dim_num];
@@ -1803,6 +1847,7 @@ NumericMatrix psp_cpp(NumericMatrix& Rcpp_inides, NumericVector& distind, List d
   return (retdes);
   
 }
+
 // [[Rcpp::export]]
 NumericMatrix psp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
                           NumericVector& distind, List distparam, 

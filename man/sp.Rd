@@ -10,9 +10,11 @@
 \usage{
   sp(n, p, ini=NA,
     dist.str=NA, dist.param=vector("list",p),
-    dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
+    dist.samp=NA, scale.flg=TRUE, wts=NA, bd=NA,
     num.subsamp=ifelse(any(is.na(dist.samp)),
     max(10000,10*n),min(10000,nrow(dist.samp))),
+    rnd.flg=ifelse(any(is.na(dist.samp)),
+    TRUE,ifelse(num.subsamp<=10000,FALSE,TRUE)),
     iter.max=max(250,iter.min), iter.min=50,
     tol=1e-10, par.flg=TRUE, n0=n*p)
 }
@@ -39,6 +41,7 @@
   \item{wts}{Weights on each data point in \code{dist.samp}. Uniform weights are assigned if \code{NA}.}
   \item{bd}{A \eqn{p} x \eqn{2} matrix for the lower and upper bounds of each variable.}
   \item{num.subsamp}{Batch size for resampling. For distributions, the default is \code{max(10000,10*n)}. For data reduction, the default is \code{min(10000,nrow(dist.samp))}.}
+  \item{rnd.flg}{Should the big data be randomly subsampled?}
   \item{iter.max}{Maximum iterations for optimization.}
   \item{iter.min}{Minimum iterations for optimization.}
   \item{tol}{Error tolerance for optimization.}
@@ -53,7 +56,7 @@
 Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 46(6A):2562-2592.
 }
 \examples{
-  \dontrun{
+  \donttest{
     #############################################################
     # Support points on distributions
     #############################################################
@@ -136,7 +139,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     D <- sp(n,2,dist.samp=mcmc_r$trace)
     
     #Plot SPs
-    par(mfrow=c(1,2))
+    oldpar <- par(mfrow=c(1,2))
     x1 <- seq(0,1,length.out=100) #contours
     x2 <- seq(0,1,length.out=100)
     z <- matrix(NA,nrow=100,ncol=100)
@@ -150,6 +153,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     points(D$sp,pch=16,cex=1.25,col="red")
     contour.default(x=x1,y=x2,z=z,drawlabels=TRUE,nlevels=10) #contour
     points(D$sp,pch=16,cex=1.25,col="red")
+    par(oldpar)
 
     #############################################################
     # Support points for big data: Rosenbrock distribution

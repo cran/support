@@ -6,6 +6,188 @@
 
 using namespace Rcpp;
 
+// herdobj_seq
+double herdobj_seq(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double sigma);
+RcppExport SEXP _support_herdobj_seq(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(herdobj_seq(xx, des, distsamp, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// herdgrad_seq
+NumericVector herdgrad_seq(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double sigma);
+RcppExport SEXP _support_herdgrad_seq(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(herdgrad_seq(xx, des, distsamp, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// herdobj_full
+double herdobj_full(NumericVector& xx, NumericMatrix& des, int idx, NumericMatrix& distsamp, double sigma);
+RcppExport SEXP _support_herdobj_full(SEXP xxSEXP, SEXP desSEXP, SEXP idxSEXP, SEXP distsampSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(herdobj_full(xx, des, idx, distsamp, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// herdgrad_full
+NumericVector herdgrad_full(NumericVector& xx, NumericMatrix& des, int idx, NumericMatrix& distsamp, double sigma);
+RcppExport SEXP _support_herdgrad_full(SEXP xxSEXP, SEXP desSEXP, SEXP idxSEXP, SEXP distsampSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(herdgrad_full(xx, des, idx, distsamp, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspobj_seq
+double pspobj_seq(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspobj_seq(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspobj_seq(xx, des, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspgrad_seq
+NumericVector pspgrad_seq(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspgrad_seq(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspgrad_seq(xx, des, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspobj_full
+double pspobj_full(NumericVector& xx, NumericMatrix& des, int idx, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspobj_full(SEXP xxSEXP, SEXP desSEXP, SEXP idxSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspobj_full(xx, des, idx, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspgrad_full
+NumericVector pspgrad_full(NumericVector& xx, NumericMatrix& des, int idx, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspgrad_full(SEXP xxSEXP, SEXP desSEXP, SEXP idxSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspgrad_full(xx, des, idx, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspobj_seq2
+double pspobj_seq2(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspobj_seq2(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspobj_seq2(xx, des, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspgrad_seq2
+NumericVector pspgrad_seq2(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspgrad_seq2(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspgrad_seq2(xx, des, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspobj_full2
+double pspobj_full2(NumericVector& xx, NumericMatrix& des, int idx, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspobj_full2(SEXP xxSEXP, SEXP desSEXP, SEXP idxSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspobj_full2(xx, des, idx, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
+// pspgrad_full2
+NumericVector pspgrad_full2(NumericVector& xx, NumericMatrix& des, int idx, NumericMatrix& distsamp, double lambda, double nu);
+RcppExport SEXP _support_pspgrad_full2(SEXP xxSEXP, SEXP desSEXP, SEXP idxSEXP, SEXP distsampSEXP, SEXP lambdaSEXP, SEXP nuSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type xx(xxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type des(desSEXP);
+    Rcpp::traits::input_parameter< int >::type idx(idxSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix& >::type distsamp(distsampSEXP);
+    Rcpp::traits::input_parameter< double >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(pspgrad_full2(xx, des, idx, distsamp, lambda, nu));
+    return rcpp_result_gen;
+END_RCPP
+}
 // printBar
 void printBar(double prop);
 RcppExport SEXP _support_printBar(SEXP propSEXP) {
@@ -94,8 +276,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // sp_cpp
-NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, int it_min, double tol, int num_proc, double n0, NumericVector& wts);
-RcppExport SEXP _support_sp_cpp(SEXP des_numSEXP, SEXP dim_numSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP it_minSEXP, SEXP tolSEXP, SEXP num_procSEXP, SEXP n0SEXP, SEXP wtsSEXP) {
+NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini, NumericVector& distind, List distparam, NumericMatrix& distsamp, bool thin, NumericMatrix& bd, int point_num, int it_max, int it_min, double tol, int num_proc, double n0, NumericVector& wts, bool rnd_flg);
+RcppExport SEXP _support_sp_cpp(SEXP des_numSEXP, SEXP dim_numSEXP, SEXP iniSEXP, SEXP distindSEXP, SEXP distparamSEXP, SEXP distsampSEXP, SEXP thinSEXP, SEXP bdSEXP, SEXP point_numSEXP, SEXP it_maxSEXP, SEXP it_minSEXP, SEXP tolSEXP, SEXP num_procSEXP, SEXP n0SEXP, SEXP wtsSEXP, SEXP rnd_flgSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -114,7 +296,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type num_proc(num_procSEXP);
     Rcpp::traits::input_parameter< double >::type n0(n0SEXP);
     Rcpp::traits::input_parameter< NumericVector& >::type wts(wtsSEXP);
-    rcpp_result_gen = Rcpp::wrap(sp_cpp(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc, n0, wts));
+    Rcpp::traits::input_parameter< bool >::type rnd_flg(rnd_flgSEXP);
+    rcpp_result_gen = Rcpp::wrap(sp_cpp(des_num, dim_num, ini, distind, distparam, distsamp, thin, bd, point_num, it_max, it_min, tol, num_proc, n0, wts, rnd_flg));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -247,4 +430,40 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(psp_seq_cpp(cur, nseq, ini, distind, distparam, gam_param, gamma_vec, max_ord, distsamp, thin, gamsamp, gamind, bd, point_num, gam_point_num, it_max, tol, num_proc));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_support_herdobj_seq", (DL_FUNC) &_support_herdobj_seq, 4},
+    {"_support_herdgrad_seq", (DL_FUNC) &_support_herdgrad_seq, 4},
+    {"_support_herdobj_full", (DL_FUNC) &_support_herdobj_full, 5},
+    {"_support_herdgrad_full", (DL_FUNC) &_support_herdgrad_full, 5},
+    {"_support_pspobj_seq", (DL_FUNC) &_support_pspobj_seq, 5},
+    {"_support_pspgrad_seq", (DL_FUNC) &_support_pspgrad_seq, 5},
+    {"_support_pspobj_full", (DL_FUNC) &_support_pspobj_full, 6},
+    {"_support_pspgrad_full", (DL_FUNC) &_support_pspgrad_full, 6},
+    {"_support_pspobj_seq2", (DL_FUNC) &_support_pspobj_seq2, 5},
+    {"_support_pspgrad_seq2", (DL_FUNC) &_support_pspgrad_seq2, 5},
+    {"_support_pspobj_full2", (DL_FUNC) &_support_pspobj_full2, 6},
+    {"_support_pspgrad_full2", (DL_FUNC) &_support_pspgrad_full2, 6},
+    {"_support_printBar", (DL_FUNC) &_support_printBar, 1},
+    {"_support_csample_num", (DL_FUNC) &_support_csample_num, 3},
+    {"_support_energycrit", (DL_FUNC) &_support_energycrit, 2},
+    {"_support_starL2cpp", (DL_FUNC) &_support_starL2cpp, 3},
+    {"_support_energy_norm_cpp", (DL_FUNC) &_support_energy_norm_cpp, 3},
+    {"_support_obj_qsp", (DL_FUNC) &_support_obj_qsp, 3},
+    {"_support_grad_qsp", (DL_FUNC) &_support_grad_qsp, 3},
+    {"_support_sp_cpp", (DL_FUNC) &_support_sp_cpp, 16},
+    {"_support_sp_seq_cpp", (DL_FUNC) &_support_sp_seq_cpp, 13},
+    {"_support_gamma_eval", (DL_FUNC) &_support_gamma_eval, 2},
+    {"_support_omega", (DL_FUNC) &_support_omega, 3},
+    {"_support_opt_hess", (DL_FUNC) &_support_opt_hess, 2},
+    {"_support_psp_mi", (DL_FUNC) &_support_psp_mi, 6},
+    {"_support_psp_cpp", (DL_FUNC) &_support_psp_cpp, 16},
+    {"_support_psp_seq_cpp", (DL_FUNC) &_support_psp_seq_cpp, 18},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_support(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }
