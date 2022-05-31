@@ -10,7 +10,7 @@
 \usage{
   sp(n, p, ini=NA,
     dist.str=NA, dist.param=vector("list",p),
-    dist.samp=NA, scale.flg=TRUE, wts=NA, bd=NA,
+    dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
     num.subsamp=ifelse(any(is.na(dist.samp)),
     max(10000,10*n),min(10000,nrow(dist.samp))),
     rnd.flg=ifelse(any(is.na(dist.samp)),
@@ -105,6 +105,8 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     #############################################################
     # Support points for big data reduction: Franke's function
     #############################################################
+    
+    \dontrun{
     library(MHadaptive)
     
     #Use modified Franke's function as posterior
@@ -159,6 +161,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     # Support points for big data: Rosenbrock distribution
     #############################################################
     
+    \dontrun{
     #Use Rosenbrock function as posterior
     rosen2d <- function(x) {
       B <- 0.03
@@ -191,5 +194,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     points(D$sp,pch=16,cex=1.25,col="red")
     contour.default(x=x1,y=x2,z=z,drawlabels=TRUE,nlevels=10) #contour
     points(D$sp,pch=16,cex=1.25,col="red")
+    }
+    }
   }
 }

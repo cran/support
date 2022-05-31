@@ -6,6 +6,7 @@
 #include <vector>
 #include <float.h>
 #include <boost/any.hpp>
+// #include <omp.h>
 #include <time.h>
 #include <limits.h>
 #include <sstream>
@@ -906,10 +907,8 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     //Parallelize computation
     // Rcout << num_proc << endl;
-    #ifdef _OPENMP
     omp_set_num_threads(num_proc);
     #pragma omp parallel for
-    #endif
     for (int m=0; m<des_num; m++){
       
       arma::vec xprime(dim_num);
@@ -1232,10 +1231,8 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
     }
     
     //Sequential sampling for nseq samples
-    #ifdef _OPENMP
     omp_set_num_threads(num_proc);
     #pragma omp parallel for
-    #endif
     for (int m=0; m<nseq; m++){
       
       // int it_cur = 0;

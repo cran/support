@@ -34,7 +34,7 @@
 Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics based on distances. \emph{Journal of Statistical Planning and Inference}, 143(8):1249-1272.
 }
 \examples{
-  \donttest{
+  \dontrun{
   #############################################################
   # Generate 25 SPs for the 2-d i.i.d. N(0,1) distribution
   #############################################################
@@ -49,6 +49,7 @@ Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics
     #############################################################
     # Support points for big data reduction: Franke's function
     #############################################################
+    \dontrun{
     library(MHadaptive)
     
     #Use modified Franke's function as posterior
@@ -81,9 +82,9 @@ Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics
     #Generate ncur SPs
     ncur <- 50
     D <- sp(ncur,2,dist.samp=mcmc_r$trace)$sp
-    Drnd <- mcmc_r$trace[sample(1:nrow(mcmc_r$trace),n,FALSE),]
+    Drnd <- mcmc_r$trace[sample(1:nrow(mcmc_r$trace),n,F),]
     e_dist(D,dist.samp=mcmc_r$trace) #smaller
     e_dist(Drnd,dist.samp=mcmc_r$trace)
-    
+    }
   }
 }

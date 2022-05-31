@@ -10,7 +10,7 @@
 \usage{
   sp_seq(D, nseq, ini=NA, num.rep=1,
         dist.str=NA, dist.param=vector("list",p),
-        dist.samp=NA, scale.flg=TRUE, bd=NA, 
+        dist.samp=NA, scale.flg=T, bd=NA, 
         num.subsamp=ifelse(any(is.na(dist.samp)),
         max(10000,10*(nseq+nrow(D))),
         min(10000,nrow(dist.samp))),
@@ -53,9 +53,9 @@
 Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 46(6A):2562-2592.
 }
 \examples{
-  \donttest{
   ## Support points on standard distributions
   
+  \dontrun{
     #############################################################
     # Generate 50 SPs for the 2-d i.i.d. N(0,1) distribution
     #############################################################
@@ -76,6 +76,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     #############################################################
     # Support points for big data reduction: Franke distribution
     #############################################################
+    \dontrun{
     library(MHadaptive)
     
     #Use modified Franke's function as posterior
@@ -131,5 +132,6 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
       drawlabels=TRUE,nlevels=10)                   #contour
     points(cur.sp,pch=4,cex=1.25,col="black",lwd=2) # (current in black)
     points(seq.sp,pch=16,cex=1.25,col="red")        # (new SPs in red)
+    }
   }
 }

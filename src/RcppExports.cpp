@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // herdobj_seq
 double herdobj_seq(NumericVector& xx, NumericMatrix& des, NumericMatrix& distsamp, double sigma);
 RcppExport SEXP _support_herdobj_seq(SEXP xxSEXP, SEXP desSEXP, SEXP distsampSEXP, SEXP sigmaSEXP) {

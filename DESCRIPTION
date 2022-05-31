@@ -1,15 +1,15 @@
 Package: support
 Type: Package
 Title: Support Points
-Version: 0.1.5
+Version: 0.1.6
 Author: Simon Mak
 Maintainer: Simon Mak <sm769@duke.edu>
-Description: Provides functions sp() and sp_seq() for computing the support points in Mak and Joseph (2018) <DOI:10.1214/17-AOS1629>. Support points can be used as a representative sample of a desired distribution, or a representative reduction of a big dataset (e.g., an "optimal" thinning of Markov-chain Monte Carlo sample chains). This work was supported by USARO grant W911NF-14-1-0024 and NSF DMS grant 1712642.
+Description: The functions sp() and sp_seq() compute the support points in Mak and Joseph (2018) <DOI:10.1214/17-AOS1629>. Support points can be used as a representative sample of a desired distribution, or a representative reduction of a big dataset (e.g., an "optimal" thinning of Markov-chain Monte Carlo sample chains). This work was supported by USARO grant W911NF-14-1-0024 and NSF DMS grant 1712642.
 License: GPL (>= 2)
-Imports: Rcpp (>= 0.12.4), randtoolbox, MHadaptive, nloptr
+Imports: Rcpp (>= 0.12.4), randtoolbox
 LinkingTo: Rcpp, RcppArmadillo, BH
 RoxygenNote: 6.1.1
 NeedsCompilation: yes
-Packaged: 2021-06-25 18:54:38 UTC; sm769
+Packaged: 2022-05-30 17:51:48 UTC; simon
 Repository: CRAN
-Date/Publication: 2021-06-28 07:20:02 UTC
+Date/Publication: 2022-05-31 22:50:02 UTC

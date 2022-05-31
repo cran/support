@@ -5,9 +5,7 @@
 #include <vector>
 #include <float.h>
 #include <boost/any.hpp>
-#ifdef _OPENMP
-# include <omp.h>
-#endif
+#include <omp.h>
 #include <time.h>
 #include <sstream>
 #include <string>
