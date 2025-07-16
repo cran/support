@@ -1,6 +1,6 @@
 sp <- function(n, p, ini=NA,
                dist.str=NA, dist.param=vector("list",p),
-               dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
+               dist.samp=NA, scale.flg=TRUE, wts=NA, bd=NA,
                num.subsamp=ifelse(any(is.na(dist.samp)),
                max(10000,10*n),min(10000,nrow(dist.samp))),
                rnd.flg=ifelse(any(is.na(dist.samp)),

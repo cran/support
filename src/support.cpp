@@ -12,9 +12,9 @@
 #include <sstream>
 #include <string>
 #include <random>
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+// #ifdef _OPENMP
+// #include <omp.h>
+// #endif
 
 using namespace Rcpp;
 using namespace std;
@@ -713,7 +713,7 @@ arma::vec grad_qsp(arma::vec& des, arma::mat& distsamp, double q){
 //-------------------------------------------------------------------------------
 // SP and PSP for standard distributions (including asymptotic approximation for large p)
 //-------------------------------------------------------------------------------
-// [[Rcpp::plugins(openmp)]]
+// // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
                              NumericVector& distind, List distparam, 
@@ -907,8 +907,8 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
     
     //Parallelize computation
     // Rcout << num_proc << endl;
-    omp_set_num_threads(num_proc);
-    #pragma omp parallel for
+    // omp_set_num_threads(num_proc);
+    // #pragma omp parallel for
     for (int m=0; m<des_num; m++){
       
       arma::vec xprime(dim_num);
@@ -1066,7 +1066,7 @@ NumericMatrix sp_cpp(int des_num, int dim_num, NumericMatrix& ini,
   
 }
 
-// [[Rcpp::plugins(openmp)]]
+// // [[Rcpp::plugins(openmp)]]
 // [[Rcpp::export]]
 NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
                          NumericVector& distind, List distparam, 
@@ -1231,8 +1231,8 @@ NumericMatrix sp_seq_cpp(NumericMatrix& cur, int nseq, NumericMatrix& ini,
     }
     
     //Sequential sampling for nseq samples
-    omp_set_num_threads(num_proc);
-    #pragma omp parallel for
+    // omp_set_num_threads(num_proc);
+    // #pragma omp parallel for
     for (int m=0; m<nseq; m++){
       
       // int it_cur = 0;

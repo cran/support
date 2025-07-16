@@ -10,7 +10,7 @@
 \usage{
   sp(n, p, ini=NA,
     dist.str=NA, dist.param=vector("list",p),
-    dist.samp=NA, scale.flg=T, wts=NA, bd=NA,
+    dist.samp=NA, scale.flg=TRUE, wts=NA, bd=NA,
     num.subsamp=ifelse(any(is.na(dist.samp)),
     max(10000,10*n),min(10000,nrow(dist.samp))),
     rnd.flg=ifelse(any(is.na(dist.samp)),
@@ -56,7 +56,7 @@
 Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 46(6A):2562-2592.
 }
 \examples{
-  \donttest{
+    \dontrun{
     #############################################################
     # Support points on distributions
     #############################################################
@@ -106,9 +106,6 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     # Support points for big data reduction: Franke's function
     #############################################################
     
-    \dontrun{
-    library(MHadaptive)
-    
     #Use modified Franke's function as posterior
     franke2d <- function(xx){
       if ((xx[1]>1)||(xx[1]<0)||(xx[2]>1)||(xx[2]<0)){
@@ -128,17 +125,20 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
       }
     }
     
-    #Generate MCMC samples
-    li_func <- franke2d #Desired log-posterior
-    ini <- c(0.5,0.5) #Initial point for MCMc
-    NN <- 1e5 #Number of MCMC samples desired
-    burnin <- NN/2 #Number of burn-in runs
-    mcmc_r <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.05*diag(2),
-                   iterations=NN, burn_in=burnin)
+  #  library(MHadaptive) # Package archived, but you can use your favorite MCMC sampler
+    
+  #  #Generate MCMC samples
+  #  li_func <- franke2d #Desired log-posterior
+  #  ini <- c(0.5,0.5) #Initial point for MCMc
+  #  NN <- 1e5 #Number of MCMC samples desired
+  #  burnin <- NN/2 #Number of burn-in runs
+  #  mcmc_franke <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.05*diag(2),
+  #                 iterations=NN, burn_in=burnin)
+    data(mcmc_franke) # Loading MCMC sample from data
     
     #Compute n SPs
     n <- 100
-    D <- sp(n,2,dist.samp=mcmc_r$trace)
+    D <- sp(n,2,dist.samp=mcmc_franke$trace)
     
     #Plot SPs
     oldpar <- par(mfrow=c(1,2))
@@ -150,51 +150,11 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
         z[i,j] <- franke2d(c(x1[i],x2[j]))
       }
     }
-    plot(mcmc_r$trace,pch=4,col="gray",cex=0.75,
+    plot(mcmc_franke$trace,pch=4,col="gray",cex=0.75,
       xlab="",ylab="",xlim=c(0,1),ylim=c(0,1)) #big data
     points(D$sp,pch=16,cex=1.25,col="red")
     contour.default(x=x1,y=x2,z=z,drawlabels=TRUE,nlevels=10) #contour
     points(D$sp,pch=16,cex=1.25,col="red")
     par(oldpar)
-
-    #############################################################
-    # Support points for big data: Rosenbrock distribution
-    #############################################################
-    
-    \dontrun{
-    #Use Rosenbrock function as posterior
-    rosen2d <- function(x) {
-      B <- 0.03
-      -x[1]^2/200 - 1/2*(x[2]+B*x[1]^2-100*B)^2
-    }
-    
-    #Generate MCMC samples
-    li_func <- rosen2d #Desired log-posterior
-    ini <- c(0,1) #Initial point for MCMc
-    NN <- 1e5 #Number of MCMC samples desired
-    burnin <- NN/2 #Number of burn-in runs
-    mcmc_r <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.25*diag(2),
-                   iterations=NN, burn_in=burnin)
-    
-    #Compute n SPs
-    n <- 100
-    D <- sp(n,2,dist.samp=mcmc_r$trace)
-    
-    #Plot SPs
-    x1 <- seq(-25,25,length.out=100) #contours
-    x2 <- seq(-15,6,length.out=100)
-    z <- matrix(NA,nrow=100,ncol=100)
-    for (i in 1:100){
-      for (j in 1:100){
-        z[i,j] <- rosen2d(c(x1[i],x2[j]))
-      }
-    }
-    plot(mcmc_r$trace,pch=4,col="gray",cex=0.75,
-      xlab="",ylab="",xlim=c(-25,25),ylim=c(-15,6)) #big data
-    points(D$sp,pch=16,cex=1.25,col="red")
-    contour.default(x=x1,y=x2,z=z,drawlabels=TRUE,nlevels=10) #contour
-    points(D$sp,pch=16,cex=1.25,col="red")
-    }
-    }
   }
 }

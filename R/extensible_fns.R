@@ -1,6 +1,6 @@
 sp_seq <- function(D, nseq, ini=NA, num.rep=1,
                    dist.str=NA, dist.param=vector("list",p),
-                   dist.samp=NA, scale.flg=T, bd=NA, 
+                   dist.samp=NA, scale.flg=TRUE, bd=NA, 
                    num.subsamp=ifelse(any(is.na(dist.samp)),
                    max(10000,10*(nseq+nrow(D))),
                    min(10000,nrow(dist.samp))),

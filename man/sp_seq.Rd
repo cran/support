@@ -10,7 +10,7 @@
 \usage{
   sp_seq(D, nseq, ini=NA, num.rep=1,
         dist.str=NA, dist.param=vector("list",p),
-        dist.samp=NA, scale.flg=T, bd=NA, 
+        dist.samp=NA, scale.flg=TRUE, bd=NA, 
         num.subsamp=ifelse(any(is.na(dist.samp)),
         max(10000,10*(nseq+nrow(D))),
         min(10000,nrow(dist.samp))),
@@ -53,9 +53,8 @@
 Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 46(6A):2562-2592.
 }
 \examples{
-  ## Support points on standard distributions
-  
-  \dontrun{
+    \dontrun{
+    
     #############################################################
     # Generate 50 SPs for the 2-d i.i.d. N(0,1) distribution
     #############################################################
@@ -76,8 +75,6 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
     #############################################################
     # Support points for big data reduction: Franke distribution
     #############################################################
-    \dontrun{
-    library(MHadaptive)
     
     #Use modified Franke's function as posterior
     franke2d <- function(xx){
@@ -87,32 +84,36 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
       else{
         x1 <- xx[1]
         x2 <- xx[2]
-        
+    
         term1 <- 0.75 * exp(-(9*x1-2)^2/4 - (9*x2-2)^2/4)
         term2 <- 0.75 * exp(-(9*x1+1)^2/49 - (9*x2+1)/10)
         term3 <- 0.5 * exp(-(9*x1-7)^2/4 - (9*x2-3)^2/4)
         term4 <- -0.2 * exp(-(9*x1-4)^2 - (9*x2-7)^2)
-        
+    
         y <- term1 + term2 + term3 + term4
         return(2*log(y))
       }
     }
+
     
-    #Generate MCMC samples
-    li_func <- franke2d #Desired log-posterior
-    ini <- c(0.5,0.5) #Initial point for MCMc
-    NN <- 1e5 #Number of MCMC samples desired
-    burnin <- NN/2 #Number of burn-in runs
-    mcmc_r <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.05*diag(2),
-                             iterations=NN, burn_in=burnin)
+  # library(MHadaptive) # Package archived, but you can use your favorite MCMC sampler
+  #  
+  # #Generate MCMC samples
+  # li_func <- franke2d #Desired log-posterior
+  # ini <- c(0.5,0.5) #Initial point for MCMc
+  # NN <- 1e5 #Number of MCMC samples desired
+  # burnin <- NN/2 #Number of burn-in runs
+  # mcmc_franke <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.05*diag(2),
+  #                          iterations=NN, burn_in=burnin)
+    data(mcmc_franke) # Loading MCMC sample from data
     
     #Generate ncur SPs
     ncur <- 50
-    cur.sp <- sp(ncur,2,dist.samp=mcmc_r$trace)$sp
+    cur.sp <- sp(ncur,2,dist.samp=mcmc_franke$trace)$sp
     
     #Add nseq sequential SPs
     nseq <- 50
-    seq.sp <- sp_seq(cur.sp,nseq,dist.samp=mcmc_r$trace)$seq
+    seq.sp <- sp_seq(cur.sp,nseq,dist.samp=mcmc_franke$trace)$seq
     
     #Plot SPs
     par(mfrow=c(1,2))
@@ -124,7 +125,7 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
         z[i,j] <- franke2d(c(x1[i],x2[j]))
       }
     }
-    plot(mcmc_r$trace,pch=4,col="gray",cex=0.75,
+    plot(mcmc_franke$trace,pch=4,col="gray",cex=0.75,
       xlab="",ylab="",xlim=c(0,1),ylim=c(0,1))      #big data
     points(cur.sp,pch=4,cex=1.25,col="black",lwd=2) # (current in black)
     points(seq.sp,pch=16,cex=1.25,col="red")        # (new SPs in red)
@@ -132,6 +133,5 @@ Mak, S. and Joseph, V. R. (2018). Support points. \emph{Annals of Statistics}, 4
       drawlabels=TRUE,nlevels=10)                   #contour
     points(cur.sp,pch=4,cex=1.25,col="black",lwd=2) # (current in black)
     points(seq.sp,pch=16,cex=1.25,col="red")        # (new SPs in red)
-    }
   }
 }

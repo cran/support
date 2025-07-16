@@ -34,23 +34,31 @@
 Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics based on distances. \emph{Journal of Statistical Planning and Inference}, 143(8):1249-1272.
 }
 \examples{
-  \dontrun{
-  #############################################################
-  # Generate 25 SPs for the 2-d i.i.d. N(0,1) distribution
-  #############################################################
-  n <- 25 #number of points
-  p <- 2 #dimension
-  D <- sp(n,p,dist.str=rep("normal",p))
-  Drnd <- matrix(rnorm(n*p),ncol=p)
-  e_dist(D$sp,dist.str=rep("normal",p)) #smaller
-  e_dist(Drnd,dist.str=rep("normal",p))
+    \dontrun{
+    #############################################################
+    # Generate 25 SPs for the 2-d i.i.d. N(0,1) distribution
+    #############################################################
+    n <- 25 #number of points
+    p <- 2 #dimension
+    D <- sp(n,p,dist.str=rep("normal",p))
+    Drnd <- matrix(rnorm(n*p),ncol=p)
+    e_dist(D$sp,dist.str=rep("normal",p)) #smaller
+    e_dist(Drnd,dist.str=rep("normal",p))
   
   
     #############################################################
     # Support points for big data reduction: Franke's function
     #############################################################
-    \dontrun{
-    library(MHadaptive)
+  #  library(MHadaptive) # Package archived, but you can use your favorite MCMC sampler
+    
+  #  #Generate MCMC samples
+  #  li_func <- franke2d #Desired log-posterior
+  #  ini <- c(0.5,0.5) #Initial point for MCMc
+  #  NN <- 1e5 #Number of MCMC samples desired
+  #  burnin <- NN/2 #Number of burn-in runs
+  #  mcmc_franke <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.05*diag(2),
+  #                           iterations=NN, burn_in=burnin)
+    data(mcmc_franke) # Loading MCMC sample from data
     
     #Use modified Franke's function as posterior
     franke2d <- function(xx){
@@ -71,20 +79,11 @@ Szekely, G. J. and Rizzo, M. L. (2013). Energy statistics: A class of statistics
       }
     }
     
-    #Generate MCMC samples
-    li_func <- franke2d #Desired log-posterior
-    ini <- c(0.5,0.5) #Initial point for MCMc
-    NN <- 1e5 #Number of MCMC samples desired
-    burnin <- NN/2 #Number of burn-in runs
-    mcmc_r <- Metro_Hastings(li_func, pars=ini, prop_sigma=0.05*diag(2),
-                             iterations=NN, burn_in=burnin)
-    
     #Generate ncur SPs
     ncur <- 50
-    D <- sp(ncur,2,dist.samp=mcmc_r$trace)$sp
-    Drnd <- mcmc_r$trace[sample(1:nrow(mcmc_r$trace),n,F),]
-    e_dist(D,dist.samp=mcmc_r$trace) #smaller
-    e_dist(Drnd,dist.samp=mcmc_r$trace)
+    D <- sp(ncur,2,dist.samp=mcmc_franke$trace)$sp
+    Drnd <- mcmc_franke$trace[sample(1:nrow(mcmc_franke$trace),n,F),]
+    e_dist(D,dist.samp=mcmc_franke$trace) #smaller
+    e_dist(Drnd,dist.samp=mcmc_franke$trace)
     }
-  }
 }
